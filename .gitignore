@@ -1,6 +1,7 @@
 /gas-nn_ru/TestPages
 chromedriver.exe
-
+*.db
+add_test_data.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -107,6 +108,7 @@ celerybeat.pid
 
 # Environments
 .env
+.venv/
 env/
 venv/
 ENV/
