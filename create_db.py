@@ -16,7 +16,7 @@ def create_tables():
                    username varchar NOT NULL,
                    first_name varchar,
                    phone varchar,
-                   mail varchar)
+                   email varchar)
                    """)
 
     cursor.execute("""

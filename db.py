@@ -2,12 +2,12 @@ import sqlite3
 from config import DB_name
 
 
-def user_is_registered(user_id: int):
-    user_info = get_user_info(user_id)
+async def user_is_registered(user_id: int):
+    user_info = await get_user_info(user_id)
     return user_info is not None
 
 
-def get_user_info(user_id: int):
+async def get_user_info(user_id: int):
     conn = sqlite3.connect(DB_name)
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
@@ -17,4 +17,17 @@ def get_user_info(user_id: int):
         return None
     else:
         return dict(user_info)
+
+
+async def add_user_info(user_info: dict):
+    conn = sqlite3.connect(DB_name)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    user_data = (user_info.get('id', 0),
+                 user_info.get('username', ''),
+                 user_info.get('first_name', ''),
+                 user_info.get('phone'),
+                 user_info.get('mail')
+                 )
+    cursor.execute("""INSERT INTO users VALUES (?, ?, ?, ?, ?)""", [user_data])
 

@@ -1,6 +1,7 @@
 from aiogram import executor, types
 from loader import dp
 import navigation
+import registration
 
 
 async def on_startup():
