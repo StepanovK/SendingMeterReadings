@@ -1,17 +1,8 @@
 from aiogram.types import CallbackQuery, Message, User
 from aiogram.types import InlineKeyboardButton as Button
 from aiogram.types import InlineKeyboardMarkup as Markup
-import db
-
-from aiogram.dispatcher.filters import Command
+import db.db as db
 from loader import dp
-from typing import Union
-
-
-# @dp.message_handler(commands=['menu'])
-# async def bot_start(message: types.Message):
-#     await message.answer(text='А вот и наше меню!', reply_markup=navigation.Markup)
-#     print(message)
 
 
 @dp.message_handler(commands=['start'])
