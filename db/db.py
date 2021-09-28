@@ -1,5 +1,10 @@
 import sqlite3
 from config import DB_name
+import os
+import create_db
+import add_test_data
+
+db_name = 'db/' + DB_name
 
 
 async def user_is_registered(user_id: int):
@@ -8,7 +13,7 @@ async def user_is_registered(user_id: int):
 
 
 async def get_user_info(user_id: int):
-    conn = sqlite3.connect('db/' + DB_name)
+    conn = sqlite3.connect(db_name)
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
     cursor.execute("""SELECT * from users where id = ?""", [user_id])
@@ -20,7 +25,7 @@ async def get_user_info(user_id: int):
 
 
 async def add_user_info(user_info: dict):
-    conn = sqlite3.connect('db/' + DB_name)
+    conn = sqlite3.connect(db_name)
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
     user_data = (user_info.get('id', 0),
@@ -29,5 +34,11 @@ async def add_user_info(user_info: dict):
                  user_info.get('phone'),
                  user_info.get('mail')
                  )
-    cursor.execute("""INSERT INTO users VALUES (?, ?, ?, ?, ?)""", [user_data])
+    cursor.execute("""INSERT INTO users VALUES (?, ?, ?, ?, ?)""", user_data)
+    conn.commit()
 
+
+async def reset_database():
+    os.remove(db_name)
+    create_db.create_tables()
+    add_test_data.add_test_data()

@@ -3,6 +3,7 @@ from aiogram.types import InlineKeyboardButton as Button
 from aiogram.types import InlineKeyboardMarkup as Markup
 import db.db as db
 from loader import dp
+import config
 
 
 @dp.message_handler(commands=['start'])
@@ -14,6 +15,12 @@ async def show_start_menu(message: Message):
                   \nЭтот бот поможет вам передавать показания приборов учета даже когда вы забываете это сделать.
                   \nДля начала нужно зарегистрироваться и добавить приборы учета. Начнём?"""
         await message.answer(reply_markup=first_menu(), text=text)
+
+
+@dp.message_handler(commands=['reset'])
+async def reset_database(message: Message):
+    if message.from_user.id == config.ADMINS:
+        db.reset_database()
 
 
 def main_menu():
