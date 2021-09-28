@@ -16,7 +16,7 @@ async def show_start_menu(message: Message):
         await message.answer(reply_markup=first_menu(), text=text)
 
 
-async def main_menu():
+def main_menu():
     main_markup = Markup()
     button1 = Button(text='Редактировать приборы учета', callback_data='open_operators_menu/edit')
     main_markup.add(button1)
@@ -25,7 +25,7 @@ async def main_menu():
     return main_markup
 
 
-async def first_menu():
+def first_menu():
     markup = Markup()
     button1 = Button(text='Зарегистрироваться', callback_data='start_registration')
     markup.insert(button1)

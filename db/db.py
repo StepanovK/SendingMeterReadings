@@ -8,7 +8,7 @@ async def user_is_registered(user_id: int):
 
 
 async def get_user_info(user_id: int):
-    conn = sqlite3.connect(DB_name)
+    conn = sqlite3.connect('db/' + DB_name)
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
     cursor.execute("""SELECT * from users where id = ?""", [user_id])
@@ -20,7 +20,7 @@ async def get_user_info(user_id: int):
 
 
 async def add_user_info(user_info: dict):
-    conn = sqlite3.connect(DB_name)
+    conn = sqlite3.connect('db/' + DB_name)
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
     user_data = (user_info.get('id', 0),
