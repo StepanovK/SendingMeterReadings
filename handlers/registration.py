@@ -2,7 +2,7 @@ from aiogram.types import Message, CallbackQuery
 from aiogram.dispatcher import FSMContext
 from aiogram.types import InlineKeyboardButton as Button
 from aiogram.types import InlineKeyboardMarkup as Markup
-import db.db as db
+import database.commands as db
 
 from loader import dp, bot
 from aiogram.dispatcher.filters.state import StatesGroup, State

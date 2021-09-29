@@ -1,7 +1,7 @@
 from aiogram.types import CallbackQuery, Message, User
 from aiogram.types import InlineKeyboardButton as Button
 from aiogram.types import InlineKeyboardMarkup as Markup
-import db.db as db
+import database.commands as db
 from loader import dp
 import config
 
@@ -19,8 +19,9 @@ async def show_start_menu(message: Message):
 
 @dp.message_handler(commands=['reset'])
 async def reset_database(message: Message):
-    if message.from_user.id == config.ADMINS:
-        db.reset_database()
+    if str(message.from_user.id) in config.ADMINS:
+        await db.reset_database()
+        await message.reply('База данных очищена!')
 
 
 def main_menu():

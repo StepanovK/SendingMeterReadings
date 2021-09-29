@@ -1,10 +1,11 @@
 import sqlite3
-from config import DB_name
 import os
-import create_db
-import add_test_data
+from . import add_test_data, create_db
+import config
 
-db_name = 'db/' + DB_name
+
+# db_name = 'db/' + DB_name
+db_name = config.DB_name
 
 
 async def user_is_registered(user_id: int):
@@ -39,6 +40,9 @@ async def add_user_info(user_info: dict):
 
 
 async def reset_database():
-    os.remove(db_name)
+    if os.path.isfile(db_name):
+        os.remove(db_name)
     create_db.create_tables()
     add_test_data.add_test_data()
+
+
