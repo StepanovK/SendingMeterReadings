@@ -1,7 +1,7 @@
 /gas-nn_ru/TestPages
 chromedriver.exe
 *.db
-test_data.sql
+database/test_data.sql
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
