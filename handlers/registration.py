@@ -75,8 +75,8 @@ async def start_registration(callback: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     data['id'] = callback.from_user.id
     data['username'] = callback.from_user.username
-    data['id'] = callback.from_user.id
     await db.add_user_info(data)
     await state.reset_state()
     text = 'Отлично, {}! \n Нажмите команду /start для начала работы'.format(data.get('first_name'))
+    await bot.delete_message(chat_id=callback.message.chat.id, message_id=callback.message.message_id)
     await bot.send_message(text=text, chat_id=callback.from_user.id)

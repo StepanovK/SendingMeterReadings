@@ -8,13 +8,13 @@ import handlers.navigation
 async def on_startup(dp: dp):
     text_message = 'Бот запущен!'
     print('\n' + text_message)
-    await send_to_admins(text_message)
+    # await send_to_admins(text_message)
 
 
 async def on_shutdown(dp: dp):
     text_message = 'Бот остановлен'
     print('\n' + text_message)
-    await send_to_admins(text_message)
+    # await send_to_admins(text_message)
 
 
 async def send_to_admins(text_message: str):

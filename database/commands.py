@@ -33,7 +33,7 @@ async def add_user_info(user_info: dict):
                  user_info.get('username', ''),
                  user_info.get('first_name', ''),
                  user_info.get('phone'),
-                 user_info.get('mail')
+                 user_info.get('email')
                  )
     cursor.execute("""INSERT INTO users VALUES (?, ?, ?, ?, ?)""", user_data)
     conn.commit()
@@ -46,3 +46,19 @@ async def reset_database():
     add_test_data.add_test_data()
 
 
+async def get_gasnn_accounts(user_id):
+    conn = sqlite3.connect(db_name)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM gas_nn_accounts WHERE User = ?", [user_id])
+    accounts = list()
+    for row in cursor.fetchall():
+        accounts.append(dict_factory(cursor, row))
+    return accounts
+
+
+def dict_factory(cursor, row):
+    d = {}
+    for idx, col in enumerate(cursor.description):
+        d[col[0]] = row[idx]
+    return d

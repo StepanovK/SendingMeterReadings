@@ -7,8 +7,8 @@ def add_test_data():
     cursor = conn.cursor()
     with open("database/test_data.sql", "r") as f:
         sql = f.read()
-    cursor.executescript(sql)
-    conn.commit()
+        cursor.executescript(sql)
+        conn.commit()
 
 
 if __name__ == '__main__':

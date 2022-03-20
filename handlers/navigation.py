@@ -8,9 +8,10 @@ from loader import dp
 import config
 
 
-operators_cbd = CallbackData('show_operators_menu', 'next_action')
-operator_cbd = CallbackData('show_operator', 'operator', 'next_action')
+operators_cbd = CallbackData('show_operators_menu', 'action')
+operator_cbd = CallbackData('show_operator', 'operator', 'action')
 main_menu_cbd = CallbackData('main_menu', 'last_action')
+gasnn_account_cbd = CallbackData('gasnn_account', 'id', 'action')
 
 
 @dp.message_handler(commands=['stop'])
@@ -44,12 +45,11 @@ async def reset_database(message: Message):
         await db.reset_database()
         await message.reply('База данных очищена! Нажмите команду /start')
 
-
 def main_menu():
     main_markup = Markup()
-    button1 = Button(text='Редактировать приборы учета', callback_data=operators_cbd.new(next_action='edit'))
+    button1 = Button(text='Редактировать приборы учета', callback_data=operators_cbd.new(action='edit'))
     main_markup.add(button1)
-    button2 = Button(text='Передать показания', callback_data=operators_cbd.new(next_action='send_mr'))
+    button2 = Button(text='Передать показания', callback_data=operators_cbd.new(action='send_mr'))
     main_markup.add(button2)
     return main_markup
 
@@ -63,29 +63,43 @@ def first_menu():
 
 @dp.callback_query_handler(operators_cbd.filter())
 async def select_operator(call: CallbackQuery, callback_data: dict):
-    await show_operators_menu(call, callback_data.get('next_action', ''))
+    await show_operators_menu(call, callback_data.get('action', ''))
 
 
-async def show_operators_menu(call: CallbackQuery, next_action):
-    # chat_id = call.message.chat.id
-    # await dp.bot.delete_message(chat_id=chat_id, message_id=call.message.message_id)
-    menu = operator_menu(next_action)
-    # await dp.bot.send_message(text='Выберите оператора', reply_markup=menu, chat_id=chat_id)
+async def show_operators_menu(call: CallbackQuery, action):
+    menu = operator_menu(action)
     await call.message.edit_text(text='Выберите оператора', reply_markup=menu)
 
 
-def operator_menu(next_action):
+def operator_menu(action):
     markup = Markup()
-    callback_data = operator_cbd.new(operator='gas-nn_ru', next_action=next_action)
+    callback_data = operator_cbd.new(operator='gas-nn_ru', action=action)
     button1 = Button(text='НижегородЭнергоГазРасчет (gas-nn.ru)', callback_data=callback_data)
     markup.add(button1)
-    main_menu_button = Button(text='<< В главное меню', callback_data=main_menu_cbd.new(last_action=next_action))
+    main_menu_button = Button(text='<< В главное меню', callback_data=main_menu_cbd.new(last_action=action))
     markup.add(main_menu_button)
     return markup
 
 
-@dp.callback_query_handler()
+@dp.callback_query_handler(operator_cbd.filter())
 async def select_operator(call: CallbackQuery, callback_data: dict):
-    pass
+    action = callback_data.get('action')
+    menu = await meter_edit_menu_gasnn_ru(call.message.from_user.id, action)
+    go_back_button = Button(text='<< Назад', callback_data=operators_cbd.new(action=action))
+    menu.add(go_back_button)
+    await call.message.edit_text(text='Выберите аккаунт для редактирования', reply_markup=menu)
+
+
+async def meter_edit_menu_gasnn_ru(user_id, action):
+    accounts = await db.get_gasnn_accounts(user_id)
+    menu = Markup()
+    for account in accounts:
+        # print(account)
+        text = '{} ({})'.format(account.get('name'), account.get('login'))
+        callback_data = gasnn_account_cbd.new(id=account.get('id'), action=action)
+        account_button = Button(text=text, callback_data=callback_data)
+        menu.add(account_button)
+    return menu
+
 
 

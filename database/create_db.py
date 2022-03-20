@@ -8,7 +8,7 @@ def create_tables():
     with open("database/database_description.sql", "r") as f:
         sql = f.read()
         cursor.executescript(sql)
-    conn.commit()
+        conn.commit()
 
 
 if __name__ == '__main__':
