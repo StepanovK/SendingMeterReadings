@@ -2,6 +2,7 @@ from aiogram import executor
 from loader import dp, bot
 from config import ADMINS
 import handlers.registration
+import handlers.registration_gasnn
 import handlers.navigation
 
 

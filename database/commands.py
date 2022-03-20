@@ -57,6 +57,22 @@ async def get_gasnn_accounts(user_id):
     return accounts
 
 
+async def add_gasnn_account(account_info: dict):
+    conn = sqlite3.connect(db_name)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    account_data = (account_info.get('user', ''),
+                    account_info.get('name', ''),
+                    account_info.get('login', ''),
+                    account_info.get('family_name', ''),
+                    account_info.get('auto_sending', False),
+                    account_info.get('default_increment', 0)
+                    )
+    cursor.execute("""INSERT INTO gas_nn_accounts(user, name, login, family_name, auto_sending, default_increment)
+                        VALUES (?, ?, ?, ?, ?, ?)""", account_data)
+    conn.commit()
+
+
 def dict_factory(cursor, row):
     d = {}
     for idx, col in enumerate(cursor.description):
