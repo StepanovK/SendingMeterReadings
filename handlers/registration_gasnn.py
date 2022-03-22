@@ -7,7 +7,7 @@ import database.commands as db
 from loader import dp, bot
 from aiogram.dispatcher.filters.state import StatesGroup, State
 
-from .navigation import operator_cbd, yes_no_cbd, yes_no_keyboard
+from .navigation import operator_cbd, yes_no_cbd, yes_no_keyboard, select_operator_menu
 
 
 class RegStates(StatesGroup):
@@ -20,7 +20,8 @@ class RegStates(StatesGroup):
 
 
 @dp.callback_query_handler(operator_cbd.filter(action='create', operator='gas-nn_ru'), state=None)
-async def start_create(callback: CallbackQuery, state: FSMContext):
+async def start_create(callback: CallbackQuery, callback_data: dict, state: FSMContext):
+
     await state.reset_state()
     message = await bot.send_message(text='Введите описание (Например: "Счетчик на кухне")',
                                      chat_id=callback.from_user.id,
@@ -30,7 +31,12 @@ async def start_create(callback: CallbackQuery, state: FSMContext):
             'family_name': '',
             'auto_sending': False,
             'default_increment': 0,
-            'messages_id': []}
+            'messages_id': [],
+            'main_menu_message_id': int(callback_data.get('main_menu_message_id', 0)),
+            'action': callback_data.get('action'),
+            'last_action': callback_data.get('last_action'),
+            'operator': callback_data.get('operator')
+            }
     data['messages_id'].append(message.message_id)
     await state.update_data(data)
     await RegStates.Gas_InputName.set()
@@ -129,6 +135,15 @@ async def clear_registration(callback: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     await clear_message(state.chat, data.get('messages_id', []))
     await state.reset_state()
+    main_menu_message_id = int(data.get('main_menu_message_id', 0))
+    if main_menu_message_id != 0:
+        markup = await select_operator_menu(operator=data.get('operator'),
+                                            action=data.get('last_action'),
+                                            user_id=callback.message.from_user.id,
+                                            main_menu_message_id=main_menu_message_id)
+        await bot.edit_message_reply_markup(message_id=main_menu_message_id,
+                                            reply_markup=markup,
+                                            chat_id=callback.message.chat.id)
 
 
 @dp.callback_query_handler(text='gas_confirm', state=RegStates.Gas_Confirm)
@@ -138,6 +153,15 @@ async def confirm_registration(callback: CallbackQuery, state: FSMContext):
     await db.add_gasnn_account(data)
     await state.reset_state()
     await clear_message(state.chat, data.get('messages_id', []))
+    main_menu_message_id = int(data.get('main_menu_message_id', 0))
+    if main_menu_message_id != 0:
+        markup = await select_operator_menu(operator=data.get('operator'),
+                                            action=data.get('last_action'),
+                                            user_id=callback.message.from_user.id,
+                                            main_menu_message_id=main_menu_message_id)
+        await bot.edit_message_reply_markup(message_id=main_menu_message_id,
+                                            reply_markup=markup,
+                                            chat_id=callback.message.chat.id)
 
 
 @dp.message_handler(state=RegStates.Gas_InputAutoSending)

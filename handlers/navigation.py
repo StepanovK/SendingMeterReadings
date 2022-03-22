@@ -6,11 +6,11 @@ from aiogram.utils.callback_data import CallbackData
 from aiogram.dispatcher import FSMContext
 import database.commands as db
 from loader import dp
+from typing import Union
 import config
 
-
 operators_cbd = CallbackData('show_operators_menu', 'action')
-operator_cbd = CallbackData('show_operator', 'operator', 'action')
+operator_cbd = CallbackData('show_operator', 'operator', 'action', 'last_action', 'main_menu_message_id')
 main_menu_cbd = CallbackData('main_menu', 'last_action')
 gasnn_account_cbd = CallbackData('gasnn_account', 'id', 'action')
 yes_no_cbd = CallbackData('yes-no', 'value')
@@ -74,9 +74,12 @@ async def show_operators_menu(call: CallbackQuery, action):
     await call.message.edit_text(text='Выберите оператора', reply_markup=menu)
 
 
-def operator_menu(action):
+def operator_menu(action: str):
     markup = Markup()
-    callback_data = operator_cbd.new(operator='gas-nn_ru', action=action)
+    callback_data = operator_cbd.new(operator='gas-nn_ru',
+                                     action=action,
+                                     last_action=action,
+                                     main_menu_message_id='0')
     button1 = Button(text='НижегородЭнергоГазРасчет (gas-nn.ru)', callback_data=callback_data)
     markup.add(button1)
     main_menu_button = Button(text='<< В главное меню', callback_data=main_menu_cbd.new(last_action=action))
@@ -86,23 +89,41 @@ def operator_menu(action):
 
 @dp.callback_query_handler(operator_cbd.filter(action='edit'))
 # @dp.callback_query_handler(operator_cbd.filter(action='create'))
-async def select_operator(call: CallbackQuery, callback_data: dict):
-    action = callback_data.get('action')
-    operator = callback_data.get('operator')
+async def select_operator(call_or_message: Union[CallbackQuery, Message], callback_data: dict):
+
+    if isinstance(call_or_message, CallbackQuery):
+        message = call_or_message.message
+    else:
+        message = call_or_message
+
+    menu = await select_operator_menu(operator=callback_data.get('operator'),
+                                      action=callback_data.get('action'),
+                                      user_id=message.from_user.id,
+                                      main_menu_message_id=message.message_id)
+
+    await message.edit_text(text='Выберите аккаунт для редактирования', reply_markup=menu)
+
+
+async def select_operator_menu(operator, action, user_id, main_menu_message_id=0):
     if operator == 'gas-nn_ru':
-        menu = await meter_edit_menu_gasnn_ru(call.message.from_user.id, action)
+        menu = await meter_menu_gasnn_ru(user_id, action)
     else:
         raise ValueError('Для поставщика услуг "{}" не создана клавиатура!'.format(operator))
     if action == 'edit':
-        add_button_callback_data = operator_cbd.new(operator=operator, action='create')
+        add_button_callback_data = operator_cbd.new(operator=operator,
+                                                    action='create',
+                                                    last_action=action,
+                                                    main_menu_message_id=main_menu_message_id)
         add_button = Button(text='(+) Добавить аккаунт', callback_data=add_button_callback_data)
         menu.add(add_button)
+
     go_back_button = Button(text='<< Назад', callback_data=operators_cbd.new(action=action))
     menu.add(go_back_button)
-    await call.message.edit_text(text='Выберите аккаунт для редактирования', reply_markup=menu)
+
+    return menu
 
 
-async def meter_edit_menu_gasnn_ru(user_id, action):
+async def meter_menu_gasnn_ru(user_id, action):
     accounts = await db.get_gasnn_accounts(user_id)
     menu = Markup()
     for account in accounts:
@@ -121,7 +142,6 @@ async def yes_no_keyboard():
     no = Button(text='Нет', callback_data=yes_no_cbd.new(value=0))
     yn_keyboard.add(no)
     return yn_keyboard
-
 
 # @dp.message_handler(state=None)
 # async def end_input(message: Message, state: FSMContext):
