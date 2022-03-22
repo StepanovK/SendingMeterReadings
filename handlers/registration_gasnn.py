@@ -96,7 +96,6 @@ async def end_input(message: Message, state: FSMContext):
         if data.get('auto_sending', True):
             data['default_increment'] = int(message.text)
             await state.update_data(data)
-    await RegStates.Gas_Confirm.set()
     await clear_message(state.chat, data['messages_id'])
     message_text = 'Вы ввели следующие данные: ' \
                    '\nИмя: {}' \
@@ -113,6 +112,7 @@ async def end_input(message: Message, state: FSMContext):
                                          reply_markup=confirm_keyboard())
     data['messages_id'].append(new_message.message_id)
     await state.update_data(data)
+    await RegStates.Gas_Confirm.set()
 
 
 def confirm_keyboard():
@@ -124,15 +124,15 @@ def confirm_keyboard():
     return markup
 
 
-@dp.callback_query_handler(text='gas_clear')
-async def start_registration(callback: CallbackQuery, state: FSMContext):
+@dp.callback_query_handler(text='gas_clear', state=RegStates.Gas_Confirm)
+async def clear_registration(callback: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     await clear_message(state.chat, data.get('messages_id', []))
     await state.reset_state()
 
 
-@dp.callback_query_handler(text='gas_confirm')
-async def start_registration(callback: CallbackQuery, state: FSMContext):
+@dp.callback_query_handler(text='gas_confirm', state=RegStates.Gas_Confirm)
+async def confirm_registration(callback: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     data['user'] = callback.message.from_user.id
     await db.add_gasnn_account(data)
@@ -140,12 +140,12 @@ async def start_registration(callback: CallbackQuery, state: FSMContext):
     await clear_message(state.chat, data.get('messages_id', []))
 
 
-# @dp.message_handler(state=RegStates.Gas_Confirm)
-# async def end_input(message: Message, state: FSMContext):
-#     if message is not None:
-#         pass
-#     else:
-#         pass
+@dp.message_handler(state=RegStates.Gas_InputAutoSending)
+@dp.message_handler(state=RegStates.Gas_Confirm)
+async def delete_wrong_message(message: Message, state: FSMContext):
+    if message is not None \
+            and not message.from_user.is_bot:
+        await bot.delete_message(chat_id=state.chat, message_id=message.message_id)
 
 
 async def clear_message(chat_id, messages_id):
