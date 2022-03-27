@@ -10,7 +10,7 @@ from loader import dp, bot
 from aiogram.dispatcher.filters.state import StatesGroup, State
 
 from .navigation import gasnn_account_cbd,\
-    yes_no_cbd, yes_no_keyboard, select_operator_menu, delete_message_with_timeout
+    yes_no_cbd, yes_no_keyboard, select_operator_menu, delete_message_with_timeout, MainStates
 
 
 gasnn_change_auto_sending = CallbackData('gasnn_change_auto_sending', 'id', 'auto_sending')
@@ -25,10 +25,8 @@ class RegStates(StatesGroup):
     Gas_delete_account_confirmation = State()
 
 
-@dp.callback_query_handler(gasnn_account_cbd.filter(action='edit'))
+@dp.callback_query_handler(gasnn_account_cbd.filter(action='edit'), state=MainStates.MainMenuNavigation)
 async def start_edit(callback_q: CallbackQuery, callback_data: dict, state: FSMContext):
-
-    await state.reset_state()
 
     account_id = callback_data.get('id')
     account_info = await db.get_gasnn_account(account_id)
@@ -85,7 +83,7 @@ async def change_auto_sending(callback_q: CallbackQuery, callback_data: dict, st
     answer = await bot.send_message(text='Готово!', chat_id=callback_q.message.chat.id)
     await delete_message_with_timeout(answer, 2)
     await delete_message_with_timeout(callback_q.message, 0)
-    await state.reset_state()
+    await MainStates.MainMenuNavigation.set()
     await bot.answer_callback_query(callback_q.id)
 
 
@@ -142,7 +140,7 @@ async def save_increment_input(message: Message, state: FSMContext):
         await message_for_delete.delete()
         data['message_for_delete'] = None
 
-    await state.reset_state()
+    await MainStates.MainMenuNavigation.set()
 
 
 @dp.callback_query_handler(gasnn_delete_account.filter(), state=RegStates.Gas_attribute_choose)
@@ -188,14 +186,14 @@ async def delete_account_confirm(callback: CallbackQuery, callback_data: dict, s
                                                 chat_id=callback.message.chat.id)
 
     await callback.message.delete()
-    await state.reset_state()
+    await MainStates.MainMenuNavigation.set()
     await bot.answer_callback_query(callback.id)
 
 
 @dp.callback_query_handler(gasnn_cancel.filter(), state=RegStates.Gas_attribute_choose)
 async def ask_before_delete_account(callback_q: CallbackQuery, callback_data: dict, state: FSMContext):
     await state.get_data()
-    await state.reset_state()
+    await MainStates.MainMenuNavigation.set()
     await callback_q.message.delete()
     await bot.answer_callback_query(callback_q.id)
 
@@ -208,8 +206,4 @@ async def delete_wrong_message(message: Message, state: FSMContext):
             and not message.from_user.is_bot:
         await bot.delete_message(chat_id=state.chat, message_id=message.message_id)
 
-
-@dp.callback_query_handler()
-async def do_something(callback: CallbackQuery, callback_data: dict, state: FSMContext):
-    f = 1
 

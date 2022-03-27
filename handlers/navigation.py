@@ -4,6 +4,7 @@ from aiogram.types import InlineKeyboardMarkup as Markup
 # from aiogram.utils import callback_data
 from aiogram.utils.callback_data import CallbackData
 from aiogram.dispatcher import FSMContext
+from aiogram.dispatcher.filters.state import StatesGroup, State
 import database.commands as db
 from loader import dp, bot
 from typing import Union
@@ -17,8 +18,12 @@ gasnn_account_cbd = CallbackData('gasnn_account', 'id', 'action', 'last_action',
 yes_no_cbd = CallbackData('yes-no', 'value', 'question_id', 'callback_data')
 
 
+class MainStates(StatesGroup):
+    MainMenuNavigation = State()
+
+
 @dp.message_handler(commands=['stop'])
-async def stop_bot(message: Message):
+async def stop_bot(message: Message, state: FSMContext):
     if str(message.from_user.id) in config.ADMINS:
         pass
         # dp.stop_polling()
@@ -27,7 +32,7 @@ async def stop_bot(message: Message):
 
 
 @dp.message_handler(commands=['start'])
-async def show_start_menu(message: Message):
+async def show_start_menu(message: Message, state: FSMContext):
     if await db.user_is_registered(message.from_user.id):
         await message.answer(reply_markup=main_menu(), text='Выберите, что нужно сделать')
     else:
@@ -35,19 +40,23 @@ async def show_start_menu(message: Message):
                   \nЭтот бот поможет вам передавать показания приборов учета даже когда вы забываете это сделать.
                   \nДля начала нужно зарегистрироваться и добавить приборы учета. Начнём?"""
         await message.answer(reply_markup=first_menu(), text=text)
+    await MainStates.MainMenuNavigation.set()
+    await message.delete()
 
 
-@dp.callback_query_handler(main_menu_cbd.filter())
-async def show_main_menu(call: CallbackQuery, callback_data):
+@dp.callback_query_handler(main_menu_cbd.filter(), state=MainStates.MainMenuNavigation)
+async def show_main_menu(call: CallbackQuery, callback_data: dict, state: FSMContext):
     await call.message.edit_text(text='Выберите, что нужно сделать', reply_markup=main_menu())
     await bot.answer_callback_query(call.id)
+    await MainStates.MainMenuNavigation.set()
 
 
 @dp.message_handler(commands=['reset'])
-async def reset_database(message: Message):
+async def reset_database(message: Message, state: FSMContext):
     if str(message.from_user.id) in config.ADMINS:
         await db.reset_database()
         await message.reply('База данных очищена! Нажмите команду /start')
+    await FSMContext.reset_state()
 
 
 def main_menu():
@@ -66,10 +75,11 @@ def first_menu():
     return markup
 
 
-@dp.callback_query_handler(operators_cbd.filter())
-async def select_operator(call: CallbackQuery, callback_data: dict):
+@dp.callback_query_handler(operators_cbd.filter(), state=MainStates.MainMenuNavigation)
+async def select_operator(call: CallbackQuery, callback_data: dict, state: FSMContext):
     await show_operators_menu(call, callback_data.get('action', ''))
     await bot.answer_callback_query(call.id)
+    await MainStates.MainMenuNavigation.set()
 
 
 async def show_operators_menu(call: CallbackQuery, action):
@@ -90,8 +100,8 @@ def operator_menu(action: str):
     return markup
 
 
-@dp.callback_query_handler(operator_cbd.filter(action='choose_for_edit'))
-async def select_operator(call_or_message: Union[CallbackQuery, Message], callback_data: dict):
+@dp.callback_query_handler(operator_cbd.filter(action='choose_for_edit'), state=MainStates.MainMenuNavigation)
+async def select_operator(call_or_message: Union[CallbackQuery, Message], callback_data: dict, state: FSMContext):
 
     if isinstance(call_or_message, CallbackQuery):
         message = call_or_message.message
@@ -105,6 +115,8 @@ async def select_operator(call_or_message: Union[CallbackQuery, Message], callba
                                       main_menu_message_id=message.message_id)
 
     await message.edit_text(text='Выберите аккаунт для редактирования', reply_markup=menu)
+
+    await MainStates.MainMenuNavigation.set()
 
 
 async def select_operator_menu(operator, action, user_id, main_menu_message_id=0):
@@ -162,3 +174,13 @@ async def yes_no_keyboard(question_id: str = '', callback_data: str = ''):
 async def delete_message_with_timeout(message: Message, timeout: int = 0):
     time.sleep(timeout)
     await message.delete()
+
+
+@dp.message_handler(state=MainStates.MainMenuNavigation)
+async def delete_wrong_message(message: Message, state: FSMContext):
+    if message is not None \
+            and isinstance(message, Message)\
+            and not message.from_user.is_bot:
+        await bot.delete_message(chat_id=state.chat, message_id=message.message_id)
+
+

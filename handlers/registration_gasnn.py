@@ -7,7 +7,8 @@ import database.commands as db
 from loader import dp, bot
 from aiogram.dispatcher.filters.state import StatesGroup, State
 
-from .navigation import operator_cbd, yes_no_cbd, yes_no_keyboard, select_operator_menu, delete_message_with_timeout
+from .navigation import operator_cbd, yes_no_cbd, yes_no_keyboard,\
+    select_operator_menu, delete_message_with_timeout, MainStates
 
 
 class RegStates(StatesGroup):
@@ -16,13 +17,14 @@ class RegStates(StatesGroup):
     Gas_InputFamilyName = State()
     Gas_InputAutoSending = State()
     Gas_InputDefaultIncrement = State()
+    Gas_EndInput = State()
     Gas_Confirm = State()
 
 
-@dp.callback_query_handler(operator_cbd.filter(action='create', operator='gas-nn_ru'), state=None)
+@dp.callback_query_handler(operator_cbd.filter(action='create', operator='gas-nn_ru'),
+                           state=MainStates.MainMenuNavigation)
 async def start_create(callback: CallbackQuery, callback_data: dict, state: FSMContext):
 
-    await state.reset_state()
     message = await bot.send_message(text='Введите описание (Например: "Счетчик на кухне")',
                                      chat_id=callback.from_user.id,
                                      disable_notification=True)
@@ -101,19 +103,35 @@ async def input_auto_sending(call: CallbackQuery, callback_data: dict, state: FS
         await state.update_data(data)
     else:
         await state.update_data(data)
-        await end_input(message=None, state=state)
+        await RegStates.Gas_EndInput.set()
+        await end_input(state=state)
     await bot.answer_callback_query(call.id)
 
 
 @dp.message_handler(state=RegStates.Gas_InputDefaultIncrement)
-async def end_input(message: Message, state: FSMContext):
+async def input_default_increment(message: Message, state: FSMContext):
     data = await state.get_data()
-    if message is not None:
-        data['messages_id'].append(message.message_id)
-        if data.get('auto_sending', True):
-            data['default_increment'] = int(message.text)
-            await state.update_data(data)
-    await clear_message(state.chat, data['messages_id'])
+    data['messages_id'].append(message.message_id)
+    default_increment = message.text
+    try:
+        default_increment = int(default_increment)
+    except ValueError:
+        default_increment = ''
+        text = 'Вы ввели некорректное значение! ' \
+               'Значение для автопередачи показаний должно состоять из цифр. Повторите ввод:'
+        new_message = await message.answer(text=text)
+        data['messages_id'].append(new_message.message_id)
+        await state.update_data(data)
+    if isinstance(default_increment, int):
+        data['default_increment'] = default_increment
+        await clear_message(state.chat, data['messages_id'])
+        await state.update_data(data)
+        await RegStates.Gas_EndInput.set()
+        await end_input(state=state)
+
+
+async def end_input(state: FSMContext):
+    data = await state.get_data()
     message_text = 'Вы ввели следующие данные: ' \
                    '\nИмя: {}' \
                    '\nл.с.: {}' \
@@ -145,7 +163,7 @@ def confirm_keyboard():
 async def clear_registration(callback: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     await clear_message(state.chat, data.get('messages_id', []))
-    await state.reset_state()
+    await MainStates.MainMenuNavigation.set()
     await bot.answer_callback_query(callback.id)
 
 
@@ -154,7 +172,7 @@ async def confirm_registration(callback: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     data['user'] = callback.message.from_user.id
     await db.add_gasnn_account(data)
-    await state.reset_state()
+    await MainStates.MainMenuNavigation.set()
     await bot.answer_callback_query(callback.id)
     await clear_message(state.chat, data.get('messages_id', []))
     main_menu_message_id = int(data.get('main_menu_message_id', 0))
