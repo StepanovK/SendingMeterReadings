@@ -82,6 +82,23 @@ async def get_gasnn_accounts(user_id):
     return accounts
 
 
+async def get_gasnn_meter_readings(account_id, number: int = 0) -> list:
+    conn = sqlite3.connect(db_name)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    shell = "SELECT * FROM" \
+            "(SELECT * FROM gas_nn_meter_readings WHERE account = ?" \
+            "ORDER BY date_of_sending DESC {})" \
+            "ORDER BY date_of_sending ASC"
+    limit = 'LIMIT ' + number if number != 0 else ''
+    shell.format(limit)
+    cursor.execute(shell, [account_id])
+    accounts = list()
+    for row in cursor.fetchall():
+        accounts.append(dict_factory(cursor, row))
+    return accounts
+
+
 async def set_attribute_gasnn_account(account_id: int, attribute: str, value):
     conn = sqlite3.connect(db_name)
     conn.row_factory = sqlite3.Row
@@ -98,7 +115,7 @@ async def delete_gasnn_account(account_id: int):
     conn.commit()
 
 
-def dict_factory(cursor, row):
+def dict_factory(cursor, row) -> dict:
     d = {}
     for idx, col in enumerate(cursor.description):
         d[col[0]] = row[idx]

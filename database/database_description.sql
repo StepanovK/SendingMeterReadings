@@ -22,5 +22,6 @@ CREATE TABLE gas_nn_meter_readings
                    date integer NOT NULL DEFAULT 0,
                    current_value float NOT NULL DEFAULT 0,
                    is_sent bit NOT NULL DEFAULT 0,
+                   sent_automatically bit NOT NULL DEFAULT 0,
                    date_of_sending integer NOT NULL DEFAULT 0,
                    FOREIGN KEY (account) REFERENCES gas_nn_accounts(id));

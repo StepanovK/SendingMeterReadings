@@ -68,9 +68,9 @@ async def reset_database(message: Message, state: FSMContext):
 
 def main_menu():
     main_markup = Markup(one_time_keyboard=True)
-    button1 = Button(text='Редактировать приборы учета', callback_data=operators_cbd.new(action='choose_for_edit'))
+    button1 = Button(text='Редактировать приборы учета', callback_data=operators_cbd.new(action='menu_edit'))
     main_markup.add(button1)
-    button2 = Button(text='Передать показания', callback_data=operators_cbd.new(action='send_mr'))
+    button2 = Button(text='Передать показания', callback_data=operators_cbd.new(action='menu_snd_mr'))
     main_markup.add(button2)
     return main_markup
 
@@ -107,8 +107,8 @@ def operator_menu(action: str):
     return markup
 
 
-@dp.callback_query_handler(operator_cbd.filter(action='choose_for_edit'), state=MainStates.MainMenuNavigation)
-async def select_operator(call_or_message: Union[CallbackQuery, Message], callback_data: dict, state: FSMContext):
+@dp.callback_query_handler(operator_cbd.filter(action='menu_edit'), state=MainStates.MainMenuNavigation)
+async def select_operator_for_edit(call_or_message: Union[CallbackQuery, Message], callback_data: dict, state: FSMContext):
 
     if isinstance(call_or_message, CallbackQuery):
         message = call_or_message.message
@@ -126,12 +126,39 @@ async def select_operator(call_or_message: Union[CallbackQuery, Message], callba
     await MainStates.MainMenuNavigation.set()
 
 
+@dp.callback_query_handler(operator_cbd.filter(action='menu_snd_mr'), state=MainStates.MainMenuNavigation)
+async def select_operator_sending_mr(call_or_message: Union[CallbackQuery, Message], callback_data: dict, state: FSMContext):
+
+    if isinstance(call_or_message, CallbackQuery):
+        message = call_or_message.message
+        await bot.answer_callback_query(call_or_message.id)
+    else:
+        message = call_or_message
+
+    menu = await select_operator_menu(operator=callback_data.get('operator'),
+                                      action=callback_data.get('action'),
+                                      user_id=message.chat.id,
+                                      main_menu_message_id=message.message_id)
+
+    await message.edit_text(text='Выберите аккаунт для передачи показаний', reply_markup=menu)
+
+    await MainStates.MainMenuNavigation.set()
+
+
 async def select_operator_menu(operator, action, user_id, main_menu_message_id=0):
+
+    if action == 'menu_edit':
+        next_action = 'edit'
+    elif action == 'menu_snd_mr':
+        next_action = 'send_mr'
+    else:
+        next_action = ''
+
     if operator == 'gas-nn_ru':
-        menu = await meter_menu_gasnn_ru(user_id, 'edit', action, main_menu_message_id)
+        menu = await meter_menu_gasnn_ru(user_id, next_action, action, main_menu_message_id)
     else:
         raise ValueError('Для поставщика услуг "{}" не создана клавиатура!'.format(operator))
-    if action == 'choose_for_edit':
+    if action == 'menu_edit':
         add_button_callback_data = operator_cbd.new(operator=operator,
                                                     action='create',
                                                     last_action=action,
