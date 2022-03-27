@@ -7,7 +7,7 @@ import database.commands as db
 from loader import dp, bot
 from aiogram.dispatcher.filters.state import StatesGroup, State
 
-from .navigation import operator_cbd, yes_no_cbd, yes_no_keyboard,\
+from .navigation import operator_cbd, yes_no_cbd, yes_no_keyboard, clear_message,\
     select_operator_menu, delete_message_with_timeout, MainStates
 
 
@@ -193,10 +193,4 @@ async def delete_wrong_message(message: Message, state: FSMContext):
             and isinstance(message, Message)\
             and not message.from_user.is_bot:
         await bot.delete_message(chat_id=state.chat, message_id=message.message_id)
-
-
-async def clear_message(chat_id: int, messages_id: list):
-    for message_id in messages_id:
-        await bot.delete_message(chat_id, message_id)
-    messages_id.clear()
 

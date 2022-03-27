@@ -22,7 +22,7 @@ class MainStates(StatesGroup):
     MainMenuNavigation = State()
 
 
-@dp.message_handler(commands=['stop'])
+@dp.message_handler(commands=['stop'], state='*')
 async def stop_bot(message: Message, state: FSMContext):
     if str(message.from_user.id) in config.ADMINS:
         pass
@@ -31,7 +31,7 @@ async def stop_bot(message: Message, state: FSMContext):
         await message.answer(text='У вас нет прав на выполнение этой команды!')
 
 
-@dp.message_handler(commands=['start'])
+@dp.message_handler(commands=['start'], state='*')
 async def show_start_menu(message: Message, state: FSMContext):
     text, reply_markup = await text_and_markup_for_main_menu(message.from_user.id)
     await message.answer(text=text, reply_markup=reply_markup)
@@ -58,12 +58,12 @@ async def show_main_menu(call: CallbackQuery, callback_data: dict, state: FSMCon
     await MainStates.MainMenuNavigation.set()
 
 
-@dp.message_handler(commands=['reset'])
+@dp.message_handler(commands=['reset'], state='*')
 async def reset_database(message: Message, state: FSMContext):
     if str(message.from_user.id) in config.ADMINS:
         await db.reset_database()
         await message.reply('База данных очищена! Нажмите команду /start')
-    await FSMContext.reset_state()
+    await state.reset_state()
 
 
 def main_menu():
@@ -185,17 +185,35 @@ async def delete_message_with_timeout(message: Message, timeout: int = 0):
 
 @dp.message_handler(state=MainStates.MainMenuNavigation)
 async def delete_wrong_message(message: Message, state: FSMContext):
+
     if message is not None \
             and isinstance(message, Message)\
             and not message.from_user.is_bot:
+
         await bot.delete_message(chat_id=state.chat, message_id=message.message_id)
 
 
 @dp.callback_query_handler(state=None)
 async def go_home_menu(call: CallbackQuery = None, callback_data: dict = None, state: FSMContext = None):
+
     """
     Если состояние неизвестно, значит нужно вернуться в главное меню
     """
+
+    await bot.answer_callback_query(call.id)
+
     text, reply_markup = await text_and_markup_for_main_menu(call.message.from_user.id)
-    await call.message.edit_text(text=text, reply_markup=reply_markup)
+    try:
+        await call.message.edit_text(text=text, reply_markup=reply_markup)
+    except Exception:
+        print('Не удалось вернуть пользователя {} в главное меню. Возможно, он уже в нём.'.format(call.from_user.id))
+
     await MainStates.MainMenuNavigation.set()
+
+
+async def clear_message(chat_id: int, messages_id: list):
+    for message_id in messages_id:
+        await bot.delete_message(chat_id, message_id)
+    messages_id.clear()
+
+
