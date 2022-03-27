@@ -146,20 +146,6 @@ async def clear_registration(callback: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     await clear_message(state.chat, data.get('messages_id', []))
     await state.reset_state()
-    main_menu_message_id = int(data.get('main_menu_message_id', 0))
-    if main_menu_message_id != 0:
-        # await bot.delete_message(chat_id=callback.message.chat.id,
-        #                          message_id=main_menu_message_id)
-        markup = await select_operator_menu(operator=data.get('operator'),
-                                            action=data.get('last_action'),
-                                            user_id=callback.message.from_user.id,
-                                            main_menu_message_id=main_menu_message_id)
-        await bot.edit_message_reply_markup(message_id=main_menu_message_id,
-                                            reply_markup=markup,
-                                            chat_id=callback.message.chat.id)
-        # await bot.send_message(text='Выберите аккаунт для редактирования',
-        #                        reply_markup=markup,
-        #                        chat_id=callback.message.chat.id)
     await bot.answer_callback_query(callback.id)
 
 
@@ -173,8 +159,6 @@ async def confirm_registration(callback: CallbackQuery, state: FSMContext):
     await clear_message(state.chat, data.get('messages_id', []))
     main_menu_message_id = int(data.get('main_menu_message_id', 0))
     if main_menu_message_id != 0:
-        # await bot.delete_message(chat_id=callback.message.chat.id,
-        #                          message_id=main_menu_message_id)
         markup = await select_operator_menu(operator=data.get('operator'),
                                             action=data.get('last_action'),
                                             user_id=callback.message.from_user.id,
@@ -182,9 +166,6 @@ async def confirm_registration(callback: CallbackQuery, state: FSMContext):
         await bot.edit_message_reply_markup(message_id=main_menu_message_id,
                                             reply_markup=markup,
                                             chat_id=callback.message.chat.id)
-        # await bot.send_message(text='Выберите аккаунт для редактирования',
-        #                        reply_markup=markup,
-        #                        chat_id=callback.message.chat.id)
 
 
 @dp.message_handler(state=RegStates.Gas_InputAutoSending)
