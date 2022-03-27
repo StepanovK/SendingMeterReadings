@@ -33,15 +33,22 @@ async def stop_bot(message: Message, state: FSMContext):
 
 @dp.message_handler(commands=['start'])
 async def show_start_menu(message: Message, state: FSMContext):
-    if await db.user_is_registered(message.from_user.id):
-        await message.answer(reply_markup=main_menu(), text='Выберите, что нужно сделать')
+    text, reply_markup = await text_and_markup_for_main_menu(message.from_user.id)
+    await message.answer(text=text, reply_markup=reply_markup)
+    await MainStates.MainMenuNavigation.set()
+    await message.delete()
+
+
+async def text_and_markup_for_main_menu(user_id: int):
+    if await db.user_is_registered(user_id):
+        text = 'Выберите, что нужно сделать'
+        reply_markup = main_menu()
     else:
         text = """Добро пожаловать!
                   \nЭтот бот поможет вам передавать показания приборов учета даже когда вы забываете это сделать.
                   \nДля начала нужно зарегистрироваться и добавить приборы учета. Начнём?"""
-        await message.answer(reply_markup=first_menu(), text=text)
-    await MainStates.MainMenuNavigation.set()
-    await message.delete()
+        reply_markup = first_menu()
+    return text, reply_markup
 
 
 @dp.callback_query_handler(main_menu_cbd.filter(), state=MainStates.MainMenuNavigation)
@@ -184,3 +191,11 @@ async def delete_wrong_message(message: Message, state: FSMContext):
         await bot.delete_message(chat_id=state.chat, message_id=message.message_id)
 
 
+@dp.callback_query_handler(state=None)
+async def go_home_menu(call: CallbackQuery = None, callback_data: dict = None, state: FSMContext = None):
+    """
+    Если состояние неизвестно, значит нужно вернуться в главное меню
+    """
+    text, reply_markup = await text_and_markup_for_main_menu(call.message.from_user.id)
+    await call.message.edit_text(text=text, reply_markup=reply_markup)
+    await MainStates.MainMenuNavigation.set()
