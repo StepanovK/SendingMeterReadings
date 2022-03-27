@@ -24,7 +24,7 @@ class MainStates(StatesGroup):
 
 @dp.message_handler(commands=['stop'], state='*')
 async def stop_bot(message: Message, state: FSMContext):
-    if str(message.from_user.id) in config.ADMINS:
+    if str(message.chat.id) in config.ADMINS:
         pass
         # dp.stop_polling()
     else:
@@ -33,7 +33,7 @@ async def stop_bot(message: Message, state: FSMContext):
 
 @dp.message_handler(commands=['start'], state='*')
 async def show_start_menu(message: Message, state: FSMContext):
-    text, reply_markup = await text_and_markup_for_main_menu(message.from_user.id)
+    text, reply_markup = await text_and_markup_for_main_menu(message.chat.id)
     await message.answer(text=text, reply_markup=reply_markup)
     await MainStates.MainMenuNavigation.set()
     await message.delete()
@@ -60,7 +60,7 @@ async def show_main_menu(call: CallbackQuery, callback_data: dict, state: FSMCon
 
 @dp.message_handler(commands=['reset'], state='*')
 async def reset_database(message: Message, state: FSMContext):
-    if str(message.from_user.id) in config.ADMINS:
+    if str(message.chat.id) in config.ADMINS:
         await db.reset_database()
         await message.reply('База данных очищена! Нажмите команду /start')
     await state.reset_state()
@@ -118,7 +118,7 @@ async def select_operator(call_or_message: Union[CallbackQuery, Message], callba
 
     menu = await select_operator_menu(operator=callback_data.get('operator'),
                                       action=callback_data.get('action'),
-                                      user_id=message.from_user.id,
+                                      user_id=message.chat.id,
                                       main_menu_message_id=message.message_id)
 
     await message.edit_text(text='Выберите аккаунт для редактирования', reply_markup=menu)
@@ -202,11 +202,11 @@ async def go_home_menu(call: CallbackQuery = None, callback_data: dict = None, s
 
     await bot.answer_callback_query(call.id)
 
-    text, reply_markup = await text_and_markup_for_main_menu(call.message.from_user.id)
+    text, reply_markup = await text_and_markup_for_main_menu(call.message.chat.id)
     try:
         await call.message.edit_text(text=text, reply_markup=reply_markup)
     except Exception:
-        print('Не удалось вернуть пользователя {} в главное меню. Возможно, он уже в нём.'.format(call.from_user.id))
+        print('Не удалось вернуть пользователя {} в главное меню. Возможно, он уже в нём.'.format(call.message.chat.id))
 
     await MainStates.MainMenuNavigation.set()
 

@@ -24,7 +24,8 @@ async def start_registration(callback: CallbackQuery, state: FSMContext):
     data = {'first_name': '', 'phone': '', 'email': '', 'messages_id_for_delete': []}
     data['messages_id_for_delete'].append(callback.message.message_id)
     new_message = await bot.send_message(text='Введите ваше имя',
-                                         chat_id=callback.from_user.id, disable_notification=True)
+                                         chat_id=callback.message.chat.id,
+                                         disable_notification=True)
     data['messages_id_for_delete'].append(new_message.message_id)
     await state.update_data(data)
 
@@ -83,7 +84,7 @@ def confirm_keyboard():
 @dp.callback_query_handler(text='start', state=RegStates.EndInput)
 async def start_work(callback: CallbackQuery, state: FSMContext):
     await state.reset_state()
-    await bot.send_message(text='Нажмите команду /start', chat_id=callback.from_user.id)
+    await bot.send_message(text='Нажмите команду /start', chat_id=callback.message.chat.id)
     await bot.answer_callback_query(callback.id)
 
 
@@ -91,13 +92,13 @@ async def start_work(callback: CallbackQuery, state: FSMContext):
 async def confirm_registration(callback: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     await clear_message(chat_id=callback.message.chat.id, messages_id=data['messages_id_for_delete'])
-    data['id'] = callback.from_user.id
-    username = callback.from_user.username
-    username = callback.from_user.full_name if username is None else username
+    data['id'] = callback.message.chat.id
+    username = callback.message.chat.username
+    username = callback.message.chat.full_name if username is None else username
     data['username'] = username
     await db.add_user_info(data)
     await state.reset_state()
     text = 'Отлично, {}! \n Нажмите команду /start для начала работы'.format(data.get('first_name'))
     await bot.delete_message(chat_id=callback.message.chat.id, message_id=callback.message.message_id)
-    await bot.send_message(text=text, chat_id=callback.from_user.id)
+    await bot.send_message(text=text, chat_id=callback.message.chat.id)
     await bot.answer_callback_query(callback.id)
