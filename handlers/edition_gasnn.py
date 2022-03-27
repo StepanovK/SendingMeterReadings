@@ -44,7 +44,7 @@ async def start_edit(callback_q: CallbackQuery, callback_data: dict, state: FSMC
 
     default_increment = account_info.get('default_increment', 0)
     callback = gasnn_change_increment_button.new(id=account_id, default_increment=default_increment)
-    text = 'Изменить значение для автопередачи показаний ({})'.format(default_increment)
+    text = 'Изменить значение автопередачи ({})'.format(default_increment)
     default_increment_button = Button(text=text, callback_data=callback)
     menu.add(default_increment_button)
 

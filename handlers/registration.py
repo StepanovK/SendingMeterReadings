@@ -6,7 +6,7 @@ import database.commands as db
 
 from loader import dp, bot
 from aiogram.dispatcher.filters.state import StatesGroup, State
-from .navigation import clear_message, MainStates
+from .navigation import clear_message, delete_message_with_timeout, MainStates
 
 
 class RegStates(StatesGroup):
@@ -98,7 +98,8 @@ async def confirm_registration(callback: CallbackQuery, state: FSMContext):
     data['username'] = username
     await db.add_user_info(data)
     await state.reset_state()
-    text = 'Отлично, {}! \n Нажмите команду /start для начала работы'.format(data.get('first_name'))
+    text = 'Отлично, {}!\nНажмите команду /start для начала работы'.format(data.get('first_name'))
     await bot.delete_message(chat_id=callback.message.chat.id, message_id=callback.message.message_id)
-    await bot.send_message(text=text, chat_id=callback.message.chat.id)
+    message = await bot.send_message(text=text, chat_id=callback.message.chat.id)
     await bot.answer_callback_query(callback.id)
+    await delete_message_with_timeout(message, 5)
