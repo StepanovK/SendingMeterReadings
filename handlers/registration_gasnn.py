@@ -7,7 +7,7 @@ import database.commands as db
 from loader import dp, bot
 from aiogram.dispatcher.filters.state import StatesGroup, State
 
-from .navigation import operator_cbd, yes_no_cbd, yes_no_keyboard, select_operator_menu
+from .navigation import operator_cbd, yes_no_cbd, yes_no_keyboard, select_operator_menu, delete_message_with_timeout
 
 
 class RegStates(StatesGroup):
@@ -40,6 +40,7 @@ async def start_create(callback: CallbackQuery, callback_data: dict, state: FSMC
     data['messages_id'].append(message.message_id)
     await state.update_data(data)
     await RegStates.Gas_InputName.set()
+    await bot.answer_callback_query(callback.id)
 
 
 @dp.message_handler(state=RegStates.Gas_InputName)
@@ -57,13 +58,22 @@ async def input_name(message: Message, state: FSMContext):
 @dp.message_handler(state=RegStates.Gas_InputLogin)
 async def input_login(message: Message, state: FSMContext):
     data = await state.get_data()
-    data['login'] = message.text
     data['messages_id'].append(message.message_id)
-    await clear_message(state.chat, data['messages_id'])
-    new_message = await message.answer(text='Введите фамилию владельца')
-    data['messages_id'].append(new_message.message_id)
+    login = message.text
+    try:
+        int(login)
+    except ValueError:
+        login = ''
+        text = 'Вы ввели некорректное значение! Номер лицевого счета должен состоять из цифр. Повторите ввод:'
+        new_message = await message.answer(text=text)
+        data['messages_id'].append(new_message.message_id)
+    if login != '':
+        data['login'] = login
+        await clear_message(state.chat, data['messages_id'])
+        new_message = await message.answer(text='Введите фамилию владельца')
+        data['messages_id'].append(new_message.message_id)
+        await RegStates.Gas_InputFamilyName.set()
     await state.update_data(data)
-    await RegStates.Gas_InputFamilyName.set()
 
 
 @dp.message_handler(state=RegStates.Gas_InputFamilyName)
@@ -80,7 +90,7 @@ async def input_family_name(message: Message, state: FSMContext):
 
 
 @dp.callback_query_handler(yes_no_cbd.filter(), state=RegStates.Gas_InputAutoSending)
-async def input_login(call: CallbackQuery, callback_data: dict, state: FSMContext):
+async def input_auto_sending(call: CallbackQuery, callback_data: dict, state: FSMContext):
     data = await state.get_data()
     data['auto_sending'] = bool(int(callback_data.get('value', 0)))
     await RegStates.Gas_InputDefaultIncrement.set()
@@ -92,6 +102,7 @@ async def input_login(call: CallbackQuery, callback_data: dict, state: FSMContex
     else:
         await state.update_data(data)
         await end_input(message=None, state=state)
+    await bot.answer_callback_query(call.id)
 
 
 @dp.message_handler(state=RegStates.Gas_InputDefaultIncrement)
@@ -137,6 +148,8 @@ async def clear_registration(callback: CallbackQuery, state: FSMContext):
     await state.reset_state()
     main_menu_message_id = int(data.get('main_menu_message_id', 0))
     if main_menu_message_id != 0:
+        # await bot.delete_message(chat_id=callback.message.chat.id,
+        #                          message_id=main_menu_message_id)
         markup = await select_operator_menu(operator=data.get('operator'),
                                             action=data.get('last_action'),
                                             user_id=callback.message.from_user.id,
@@ -144,6 +157,10 @@ async def clear_registration(callback: CallbackQuery, state: FSMContext):
         await bot.edit_message_reply_markup(message_id=main_menu_message_id,
                                             reply_markup=markup,
                                             chat_id=callback.message.chat.id)
+        # await bot.send_message(text='Выберите аккаунт для редактирования',
+        #                        reply_markup=markup,
+        #                        chat_id=callback.message.chat.id)
+    await bot.answer_callback_query(callback.id)
 
 
 @dp.callback_query_handler(text='gas_confirm', state=RegStates.Gas_Confirm)
@@ -152,9 +169,12 @@ async def confirm_registration(callback: CallbackQuery, state: FSMContext):
     data['user'] = callback.message.from_user.id
     await db.add_gasnn_account(data)
     await state.reset_state()
+    await bot.answer_callback_query(callback.id)
     await clear_message(state.chat, data.get('messages_id', []))
     main_menu_message_id = int(data.get('main_menu_message_id', 0))
     if main_menu_message_id != 0:
+        # await bot.delete_message(chat_id=callback.message.chat.id,
+        #                          message_id=main_menu_message_id)
         markup = await select_operator_menu(operator=data.get('operator'),
                                             action=data.get('last_action'),
                                             user_id=callback.message.from_user.id,
@@ -162,17 +182,21 @@ async def confirm_registration(callback: CallbackQuery, state: FSMContext):
         await bot.edit_message_reply_markup(message_id=main_menu_message_id,
                                             reply_markup=markup,
                                             chat_id=callback.message.chat.id)
+        # await bot.send_message(text='Выберите аккаунт для редактирования',
+        #                        reply_markup=markup,
+        #                        chat_id=callback.message.chat.id)
 
 
 @dp.message_handler(state=RegStates.Gas_InputAutoSending)
 @dp.message_handler(state=RegStates.Gas_Confirm)
 async def delete_wrong_message(message: Message, state: FSMContext):
     if message is not None \
+            and isinstance(message, Message)\
             and not message.from_user.is_bot:
         await bot.delete_message(chat_id=state.chat, message_id=message.message_id)
 
 
-async def clear_message(chat_id, messages_id):
+async def clear_message(chat_id: int, messages_id: list):
     for message_id in messages_id:
         await bot.delete_message(chat_id, message_id)
     messages_id.clear()

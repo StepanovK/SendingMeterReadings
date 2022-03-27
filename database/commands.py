@@ -46,17 +46,6 @@ async def reset_database():
     add_test_data.add_test_data()
 
 
-async def get_gasnn_accounts(user_id):
-    conn = sqlite3.connect(db_name)
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM gas_nn_accounts WHERE User = ?", [user_id])
-    accounts = list()
-    for row in cursor.fetchall():
-        accounts.append(dict_factory(cursor, row))
-    return accounts
-
-
 async def add_gasnn_account(account_info: dict):
     conn = sqlite3.connect(db_name)
     conn.row_factory = sqlite3.Row
@@ -70,6 +59,42 @@ async def add_gasnn_account(account_info: dict):
                     )
     cursor.execute("""INSERT INTO gas_nn_accounts(user, name, login, family_name, auto_sending, default_increment)
                         VALUES (?, ?, ?, ?, ?, ?)""", account_data)
+    conn.commit()
+
+
+async def get_gasnn_account(account_id: int) -> dict:
+    conn = sqlite3.connect(db_name)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM gas_nn_accounts WHERE id = ?", [account_id])
+    row = cursor.fetchone()
+    return dict_factory(cursor, row)
+
+
+async def get_gasnn_accounts(user_id):
+    conn = sqlite3.connect(db_name)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM gas_nn_accounts WHERE User = ?", [user_id])
+    accounts = list()
+    for row in cursor.fetchall():
+        accounts.append(dict_factory(cursor, row))
+    return accounts
+
+
+async def set_attribute_gasnn_account(account_id: int, attribute: str, value):
+    conn = sqlite3.connect(db_name)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("UPDATE gas_nn_accounts set {} = ? where id = ?".format(attribute), (value, account_id))
+    conn.commit()
+
+
+async def delete_gasnn_account(account_id: int):
+    conn = sqlite3.connect(db_name)
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM gas_nn_meter_readings WHERE account = ?", [account_id])
+    cursor.execute("DELETE FROM gas_nn_accounts WHERE id = ?", [account_id])
     conn.commit()
 
 
