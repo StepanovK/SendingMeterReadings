@@ -18,7 +18,7 @@ CREATE TABLE gas_nn_accounts
                    FOREIGN KEY (user) REFERENCES users(id));
 
 CREATE TABLE gas_nn_meter_readings
-                   (id integer primary key
+                   (id integer primary key,
                    account integer NOT NULL,
                    date integer NOT NULL DEFAULT 0,
                    current_value float NOT NULL DEFAULT 0,
