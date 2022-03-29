@@ -29,7 +29,7 @@ class RegStates(StatesGroup):
 async def start_edit(callback_q: CallbackQuery, callback_data: dict, state: FSMContext):
 
     account_id = callback_data.get('id')
-    account_info = await db.get_gasnn_account(account_id)
+    account_info = await db.gasnn_get_account(account_id)
     auto_sending = account_info.get('auto_sending', False)
 
     menu = Markup(one_time_keyboard=True)
@@ -77,7 +77,7 @@ async def start_edit(callback_q: CallbackQuery, callback_data: dict, state: FSMC
 
 @dp.callback_query_handler(gasnn_change_auto_sending.filter(), state=RegStates.Gas_attribute_choose)
 async def change_auto_sending(callback_q: CallbackQuery, callback_data: dict, state: FSMContext):
-    await db.set_attribute_gasnn_account(account_id=callback_data.get('id'),
+    await db.gasnn_set_attribute_account(account_id=callback_data.get('id'),
                                          attribute='auto_sending',
                                          value=bool(int(callback_data.get('auto_sending'))))
     answer = await bot.send_message(text='Готово!', chat_id=callback_q.message.chat.id)
@@ -90,7 +90,7 @@ async def change_auto_sending(callback_q: CallbackQuery, callback_data: dict, st
 @dp.callback_query_handler(gasnn_change_increment_button.filter(), state=RegStates.Gas_attribute_choose)
 async def change_increment(callback_q: CallbackQuery, callback_data: dict, state: FSMContext):
 
-    await db.set_attribute_gasnn_account(account_id=callback_data.get('id'),
+    await db.gasnn_set_attribute_account(account_id=callback_data.get('id'),
                                          attribute='auto_sending',
                                          value=bool(callback_data.get('auto_sending')))
 
@@ -128,7 +128,7 @@ async def save_increment_input(message: Message, state: FSMContext):
             and isinstance(account_id, int) \
             and account_id != 0:
 
-        await db.set_attribute_gasnn_account(account_id=account_id, attribute='default_increment', value=new_value)
+        await db.gasnn_set_attribute_account(account_id=account_id, attribute='default_increment', value=new_value)
 
         answer = await message.answer(text='Новое значение установлено!')
         await delete_message_with_timeout(answer, 2)
@@ -148,7 +148,7 @@ async def ask_before_delete_account(callback_q: CallbackQuery, callback_data: di
 
     account_id = int(callback_data.get('id', 0))
     markup = await yes_no_keyboard(question_id='delete_gasnn_account', callback_data=str(account_id))
-    account_info = await db.get_gasnn_account(account_id)
+    account_info = await db.gasnn_get_account(account_id)
     text = 'Вы уверены, что хотите удалить ВСЮ информацию о лицевом счете "{}" ({})?'.format(account_info.get('name'),
                                                                                              account_info.get('login'))
     await bot.send_message(chat_id=callback_q.message.chat.id, text=text, reply_markup=markup)
@@ -170,7 +170,7 @@ async def delete_account_confirm(callback: CallbackQuery, callback_data: dict, s
     data = await state.get_data()
 
     if deletion_confirmed:
-        await db.delete_gasnn_account(account_id)
+        await db.gasnn_delete_account(account_id)
         message = await bot.send_message(chat_id=callback.message.chat.id,
                                          text='Аккаунт удалён!')
         await bot.answer_callback_query(callback.id)

@@ -173,7 +173,7 @@ async def select_operator_menu(operator, action, user_id, main_menu_message_id=0
 
 
 async def meter_menu_gasnn_ru(user_id, action, last_action, main_menu_message_id=0, operator='gas-nn_ru'):
-    accounts = await db.get_gasnn_accounts(user_id)
+    accounts = await db.gasnn_get_accounts(user_id)
     menu = Markup()
     for account in accounts:
         # print(account)

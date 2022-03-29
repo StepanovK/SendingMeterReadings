@@ -171,7 +171,7 @@ async def clear_registration(callback: CallbackQuery, state: FSMContext):
 async def confirm_registration(callback: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     data['user'] = callback.message.chat.id
-    await db.add_gasnn_account(data)
+    await db.gasnn_add_account(data)
     await MainStates.MainMenuNavigation.set()
     await bot.answer_callback_query(callback.id)
     await clear_message(state.chat, data.get('messages_id', []))

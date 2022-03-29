@@ -46,7 +46,7 @@ async def reset_database():
     add_test_data.add_test_data()
 
 
-async def add_gasnn_account(account_info: dict):
+async def gasnn_add_account(account_info: dict):
     conn = sqlite3.connect(db_name)
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
@@ -62,7 +62,7 @@ async def add_gasnn_account(account_info: dict):
     conn.commit()
 
 
-async def get_gasnn_account(account_id: int) -> dict:
+async def gasnn_get_account(account_id: int) -> dict:
     conn = sqlite3.connect(db_name)
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
@@ -71,7 +71,7 @@ async def get_gasnn_account(account_id: int) -> dict:
     return dict_factory(cursor, row)
 
 
-async def get_gasnn_accounts(user_id):
+async def gasnn_get_accounts(user_id):
     conn = sqlite3.connect(db_name)
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
@@ -82,7 +82,7 @@ async def get_gasnn_accounts(user_id):
     return accounts
 
 
-async def get_gasnn_meter_readings(account_id, number: int = 0) -> list:
+async def gasnn_get_meter_readings(account_id, number: int = 0) -> list:
     conn = sqlite3.connect(db_name)
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
@@ -100,7 +100,7 @@ async def get_gasnn_meter_readings(account_id, number: int = 0) -> list:
     return accounts
 
 
-async def add_gasnn_meter_reading(account: int,
+async def gasnn_add_meter_reading(account: int,
                                   date: int,
                                   current_value: int = 0,
                                   is_sent: bool = False,
@@ -114,7 +114,7 @@ async def add_gasnn_meter_reading(account: int,
     conn.commit()
 
 
-async def set_attribute_gasnn_account(account_id: int, attribute: str, value):
+async def gasnn_set_attribute_account(account_id: int, attribute: str, value):
     conn = sqlite3.connect(db_name)
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
@@ -122,7 +122,7 @@ async def set_attribute_gasnn_account(account_id: int, attribute: str, value):
     conn.commit()
 
 
-async def delete_gasnn_account(account_id: int):
+async def gasnn_delete_account(account_id: int):
     conn = sqlite3.connect(db_name)
     cursor = conn.cursor()
     cursor.execute("DELETE FROM gas_nn_meter_readings WHERE account = ?", [account_id])

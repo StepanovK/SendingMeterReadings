@@ -26,7 +26,7 @@ class RegStates(StatesGroup):
 async def start_edit(callback_q: CallbackQuery, callback_data: dict, state: FSMContext):
 
     account_id = callback_data.get('id')
-    meter_readings = await db.get_gasnn_meter_readings(account_id, 5)
+    meter_readings = await db.gasnn_get_meter_readings(account_id, 5)
     if len(meter_readings) == 0:
         text_message = 'Показания отсутствуют'
     else:
@@ -130,7 +130,7 @@ async def save_increment_input(message: Message, state: FSMContext):
             and isinstance(account_id, int) \
             and account_id != 0:
 
-        await db.add_gasnn_meter_reading(account=account_id,
+        await db.gasnn_add_meter_reading(account=account_id,
                                          date=datetime.now().timestamp(),
                                          current_value=new_value)
         message_text = f'Значение {new_value} принято ботом. Оно будет передано в положенное время передачи'
@@ -154,5 +154,4 @@ async def delete_wrong_message(message: Message, state: FSMContext):
             and isinstance(message, Message)\
             and not message.from_user.is_bot:
         await bot.delete_message(chat_id=state.chat, message_id=message.message_id)
-
 
