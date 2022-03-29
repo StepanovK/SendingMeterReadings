@@ -82,9 +82,9 @@ async def change_auto_sending(callback_q: CallbackQuery, callback_data: dict, st
                                          value=bool(int(callback_data.get('auto_sending'))))
     answer = await bot.send_message(text='Готово!', chat_id=callback_q.message.chat.id)
     await bot.answer_callback_query(callback_q.id)
+    await MainStates.MainMenuNavigation.set()
     await delete_message_with_timeout(answer, 2)
     await delete_message_with_timeout(callback_q.message, 0)
-    await MainStates.MainMenuNavigation.set()
 
 
 @dp.callback_query_handler(gasnn_change_increment_button.filter(), state=RegStates.Gas_attribute_choose)
@@ -113,6 +113,8 @@ async def change_increment(callback_q: CallbackQuery, callback_data: dict, state
 @dp.message_handler(state=RegStates.Gas_default_increment_input)
 async def save_increment_input(message: Message, state: FSMContext):
 
+    await MainStates.MainMenuNavigation.set()
+
     new_value = message.text
 
     try:
@@ -139,8 +141,6 @@ async def save_increment_input(message: Message, state: FSMContext):
     if message_for_delete is not None and isinstance(message_for_delete, Message):
         await message_for_delete.delete()
         data['message_for_delete'] = None
-
-    await MainStates.MainMenuNavigation.set()
 
 
 @dp.callback_query_handler(gasnn_delete_account.filter(), state=RegStates.Gas_attribute_choose)
