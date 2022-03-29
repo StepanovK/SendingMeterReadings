@@ -2,10 +2,11 @@ from aiogram import executor
 from loader import dp, bot
 from config import ADMINS
 import handlers.registration
-import handlers.registration_gasnn
-import handlers.meters_readings_sending_gasnn
-import handlers.edition_gasnn
 import handlers.navigation
+import handlers.gasnn_edition
+import handlers.gasnn_registration
+import handlers.gasnn_meters_readings_sending
+
 
 
 async def on_startup(dp: dp):
