@@ -3,6 +3,7 @@ from loader import dp, bot
 from config import ADMINS
 import handlers.registration
 import handlers.registration_gasnn
+import handlers.meters_readings_sending_gasnn
 import handlers.edition_gasnn
 import handlers.navigation
 

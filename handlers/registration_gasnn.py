@@ -114,7 +114,7 @@ async def input_default_increment(message: Message, state: FSMContext):
     data['messages_id'].append(message.message_id)
     default_increment = message.text
     try:
-        default_increment = int(default_increment)
+        default_increment = float(default_increment)
     except ValueError:
         default_increment = ''
         text = 'Вы ввели некорректное значение! ' \
@@ -122,7 +122,7 @@ async def input_default_increment(message: Message, state: FSMContext):
         new_message = await message.answer(text=text)
         data['messages_id'].append(new_message.message_id)
         await state.update_data(data)
-    if isinstance(default_increment, int):
+    if isinstance(default_increment, float):
         data['default_increment'] = default_increment
         await clear_message(state.chat, data['messages_id'])
         await state.update_data(data)

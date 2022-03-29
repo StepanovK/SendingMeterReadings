@@ -116,15 +116,15 @@ async def save_increment_input(message: Message, state: FSMContext):
     new_value = message.text
 
     try:
-        new_value = int(new_value)
+        new_value = float(new_value)
     except ValueError:
         answer = await message.answer(text='Введено некорректное значение!')
         await delete_message_with_timeout(answer, 2)
 
     data = await state.get_data()
-    account_id = int(data.get('account_id', 0))
+    account_id = float(data.get('account_id', 0))
 
-    if isinstance(new_value, int) \
+    if isinstance(new_value, float) \
             and isinstance(account_id, int) \
             and account_id != 0:
 

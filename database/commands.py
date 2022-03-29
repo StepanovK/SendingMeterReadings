@@ -86,17 +86,32 @@ async def get_gasnn_meter_readings(account_id, number: int = 0) -> list:
     conn = sqlite3.connect(db_name)
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
-    shell = "SELECT * FROM" \
-            "(SELECT * FROM gas_nn_meter_readings WHERE account = ?" \
-            "ORDER BY date_of_sending DESC {})" \
-            "ORDER BY date_of_sending ASC"
-    limit = 'LIMIT ' + number if number != 0 else ''
-    shell.format(limit)
+    limit = 'LIMIT ' + str(number) if number != 0 else ''
+    shell = f"""SELECT * FROM
+                (SELECT * FROM gas_nn_meter_readings WHERE account = ?
+                ORDER BY date DESC {limit})
+                ORDER BY date ASC"""
     cursor.execute(shell, [account_id])
     accounts = list()
     for row in cursor.fetchall():
-        accounts.append(dict_factory(cursor, row))
+        dict_row = dict_factory(cursor, row)
+        dict_row['is_sent'] = bool(dict_row['is_sent'])
+        accounts.append(dict_row)
     return accounts
+
+
+async def add_gasnn_meter_reading(account: int,
+                                  date: int,
+                                  current_value: int = 0,
+                                  is_sent: bool = False,
+                                  date_of_sending: int = 0) -> list:
+    conn = sqlite3.connect(db_name)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    values = (account, date, current_value, int(is_sent), date_of_sending)
+    cursor.execute("""INSERT INTO gas_nn_meter_readings(account, date, current_value, is_sent, date_of_sending)
+                      VALUES (?, ?, ?, ?, ?)""", values)
+    conn.commit()
 
 
 async def set_attribute_gasnn_account(account_id: int, attribute: str, value):
