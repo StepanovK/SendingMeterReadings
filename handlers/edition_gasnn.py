@@ -81,10 +81,10 @@ async def change_auto_sending(callback_q: CallbackQuery, callback_data: dict, st
                                          attribute='auto_sending',
                                          value=bool(int(callback_data.get('auto_sending'))))
     answer = await bot.send_message(text='Готово!', chat_id=callback_q.message.chat.id)
+    await bot.answer_callback_query(callback_q.id)
     await delete_message_with_timeout(answer, 2)
     await delete_message_with_timeout(callback_q.message, 0)
     await MainStates.MainMenuNavigation.set()
-    await bot.answer_callback_query(callback_q.id)
 
 
 @dp.callback_query_handler(gasnn_change_increment_button.filter(), state=RegStates.Gas_attribute_choose)
@@ -122,7 +122,7 @@ async def save_increment_input(message: Message, state: FSMContext):
         await delete_message_with_timeout(answer, 2)
 
     data = await state.get_data()
-    account_id = float(data.get('account_id', 0))
+    account_id = int(data.get('account_id', 0))
 
     if isinstance(new_value, float) \
             and isinstance(account_id, int) \
@@ -173,6 +173,7 @@ async def delete_account_confirm(callback: CallbackQuery, callback_data: dict, s
         await db.delete_gasnn_account(account_id)
         message = await bot.send_message(chat_id=callback.message.chat.id,
                                          text='Аккаунт удалён!')
+        await bot.answer_callback_query(callback.id)
         await delete_message_with_timeout(message, 2)
 
         main_menu_message_id = int(data.get('main_menu_message_id', 0))
@@ -185,9 +186,11 @@ async def delete_account_confirm(callback: CallbackQuery, callback_data: dict, s
                                                 reply_markup=markup,
                                                 chat_id=callback.message.chat.id)
 
+    else:
+        await bot.answer_callback_query(callback.id)
+
     await callback.message.delete()
     await MainStates.MainMenuNavigation.set()
-    await bot.answer_callback_query(callback.id)
 
 
 @dp.callback_query_handler(gasnn_cancel.filter(), state=RegStates.Gas_attribute_choose)
