@@ -7,13 +7,15 @@ import database.commands as db
 from loader import dp, bot
 from aiogram.dispatcher.filters.state import StatesGroup, State
 
-from .navigation import operator_cbd, yes_no_cbd, yes_no_keyboard, clear_message,\
+from .navigation import operator_cbd, yes_no_cbd, yes_no_keyboard, clear_message, \
     select_operator_menu, delete_message_with_timeout, MainStates
 
 
 class RegStates(StatesGroup):
     Gas_InputName = State()
     Gas_InputLogin = State()
+    Gas_InputPassword = State()
+    Gas_InputAccountNumber = State()
     Gas_InputFamilyName = State()
     Gas_InputAutoSending = State()
     Gas_InputDefaultIncrement = State()
@@ -24,12 +26,13 @@ class RegStates(StatesGroup):
 @dp.callback_query_handler(operator_cbd.filter(action='create', operator='gas-nn_ru'),
                            state=MainStates.MainMenuNavigation)
 async def start_create(callback: CallbackQuery, callback_data: dict, state: FSMContext):
-
-    message = await bot.send_message(text='Введите описание (Например: "Счетчик на кухне")',
+    message = await bot.send_message(text='Введите описание (Например: "Счетчик на кухне"):',
                                      chat_id=callback.message.chat.id,
                                      disable_notification=True)
     data = {'name': '',
             'login': '',
+            'password': '',
+            'account_number': '',
             'family_name': '',
             'auto_sending': False,
             'default_increment': 0,
@@ -51,7 +54,7 @@ async def input_name(message: Message, state: FSMContext):
     data['name'] = message.text
     data['messages_id'].append(message.message_id)
     await clear_message(state.chat, data['messages_id'])
-    new_message = await message.answer(text='Введите номер лицевого счета')
+    new_message = await message.answer(text='Введите адрес электронной почты для входа:')
     data['messages_id'].append(new_message.message_id)
     await state.update_data(data)
     await RegStates.Gas_InputLogin.set()
@@ -59,6 +62,30 @@ async def input_name(message: Message, state: FSMContext):
 
 @dp.message_handler(state=RegStates.Gas_InputLogin)
 async def input_login(message: Message, state: FSMContext):
+    data = await state.get_data()
+    data['messages_id'].append(message.message_id)
+    data['login'] = message.text
+    await clear_message(state.chat, data['messages_id'])
+    new_message = await message.answer(text='Введите пароль:')
+    data['messages_id'].append(new_message.message_id)
+    await RegStates.Gas_InputPassword.set()
+    await state.update_data(data)
+
+
+@dp.message_handler(state=RegStates.Gas_InputPassword)
+async def input_password(message: Message, state: FSMContext):
+    data = await state.get_data()
+    data['messages_id'].append(message.message_id)
+    data['password'] = message.text
+    await clear_message(state.chat, data['messages_id'])
+    new_message = await message.answer(text='Введите номер лицевого счета:')
+    data['messages_id'].append(new_message.message_id)
+    await RegStates.Gas_InputAccountNumber.set()
+    await state.update_data(data)
+
+
+@dp.message_handler(state=RegStates.Gas_InputAccountNumber)
+async def input_account_number(message: Message, state: FSMContext):
     data = await state.get_data()
     data['messages_id'].append(message.message_id)
     login = message.text
@@ -70,7 +97,7 @@ async def input_login(message: Message, state: FSMContext):
         new_message = await message.answer(text=text)
         data['messages_id'].append(new_message.message_id)
     if login != '':
-        data['login'] = login
+        data['account_number'] = login
         await clear_message(state.chat, data['messages_id'])
         new_message = await message.answer(text='Введите фамилию владельца')
         data['messages_id'].append(new_message.message_id)
@@ -131,21 +158,31 @@ async def input_default_increment(message: Message, state: FSMContext):
 
 
 async def end_input(state: FSMContext):
+
     data = await state.get_data()
-    message_text = 'Вы ввели следующие данные: ' \
-                   '\nИмя: {}' \
-                   '\nл.с.: {}' \
-                   '\nфамилия: {}' \
-                   '\nавтопередача показаний {}'.format(data['name'],
-                                                        data['login'],
-                                                        data['family_name'],
-                                                        'ВКЛЮЧЕНА' if data['auto_sending'] else 'ВЫКЛЮЧЕНА')
+
+    message_text = "Вы ввели следующие данные:" \
+                   "\nназвание: {name}" \
+                   "\nл.с.: {account_number}" \
+                   "\nфамилия: {family_name}" \
+                   "\nлогин: {login}" \
+                   "\nавтопередача показаний {auto_sending}"""
+
+    message_text = message_text.format(
+        name=data['name'],
+        account_number=data['account_number'],
+        family_name=data['family_name'],
+        login=data['login'],
+        auto_sending='ВКЛЮЧЕНА' if data['auto_sending'] else 'ВЫКЛЮЧЕНА')
+
     if data['auto_sending']:
         message_text += '\nзначение для автоматической передачи: {}'.format(data['default_increment'])
+
     new_message = await bot.send_message(chat_id=state.chat,
                                          text=message_text,
                                          reply_markup=confirm_keyboard())
     data['messages_id'].append(new_message.message_id)
+
     await state.update_data(data)
     await RegStates.Gas_Confirm.set()
 
@@ -190,7 +227,6 @@ async def confirm_registration(callback: CallbackQuery, state: FSMContext):
 @dp.message_handler(state=RegStates.Gas_Confirm)
 async def delete_wrong_message(message: Message, state: FSMContext):
     if message is not None \
-            and isinstance(message, Message)\
+            and isinstance(message, Message) \
             and not message.from_user.is_bot:
         await bot.delete_message(chat_id=state.chat, message_id=message.message_id)
-

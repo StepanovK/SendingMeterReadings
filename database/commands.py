@@ -2,6 +2,7 @@ import sqlite3
 import os
 from . import add_test_data, create_db
 import config
+from cryptography.fernet import Fernet
 
 
 # db_name = 'db/' + DB_name
@@ -50,25 +51,43 @@ async def gasnn_add_account(account_info: dict):
     conn = sqlite3.connect(db_name)
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
+
+    cipher = Fernet(config.PASSWORD_ENCRYPT_KEY[-1])
+    encrypted_password = cipher.encrypt(bytes(account_info.get('password', ''), 'utf-8'))
+    encrypted_password = encrypted_password.decode('utf-8')
+
     account_data = (account_info.get('user', ''),
                     account_info.get('name', ''),
                     account_info.get('login', ''),
+                    encrypted_password,
+                    account_info.get('account_number', ''),
                     account_info.get('family_name', ''),
                     account_info.get('auto_sending', False),
                     account_info.get('default_increment', 0)
                     )
-    cursor.execute("""INSERT INTO gas_nn_accounts(user, name, login, family_name, auto_sending, default_increment)
-                        VALUES (?, ?, ?, ?, ?, ?)""", account_data)
+    cursor.execute("""INSERT INTO gas_nn_accounts(
+    user, name, login, password, account_number, family_name, auto_sending, default_increment)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)""", account_data)
     conn.commit()
 
 
 async def gasnn_get_account(account_id: int) -> dict:
+
     conn = sqlite3.connect(db_name)
     conn.row_factory = sqlite3.Row
+
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM gas_nn_accounts WHERE id = ?", [account_id])
     row = cursor.fetchone()
-    return dict_factory(cursor, row)
+
+    account = dict_factory(cursor, row)
+
+    cipher = Fernet(config.PASSWORD_ENCRYPT_KEY[-1])
+    encrypted_password = bytes(account.get('password', ''), 'utf-8')
+    decrypted_password = cipher.decrypt(encrypted_password).decode('utf-8')
+    account['password'] = decrypted_password
+
+    return account
 
 
 async def gasnn_get_accounts(user_id):

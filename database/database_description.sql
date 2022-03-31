@@ -12,6 +12,8 @@ CREATE TABLE gas_nn_accounts
                    user integer NOT NULL,
                    name varchar NOT NULL,
                    login varchar NOT NULL,
+                   password varchar NOT NULL,
+                   account_number varchar NOT NULL,
                    family_name varchar NOT NULL,
                    auto_sending bit NOT NULL DEFAULT 0,
                    default_increment float NOT NULL DEFAULT 0,
