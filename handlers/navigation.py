@@ -5,6 +5,7 @@ from aiogram.types import InlineKeyboardMarkup as Markup
 from aiogram.utils.callback_data import CallbackData
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
+import asyncio
 import database.commands as db
 from loader import dp, bot
 from typing import Union
@@ -206,7 +207,7 @@ async def yes_no_keyboard(question_id: str = '', callback_data: str = ''):
 
 
 async def delete_message_with_timeout(message: Message, timeout: int = 0):
-    time.sleep(timeout)
+    asyncio.sleep(timeout)
     await message.delete()
 
 
