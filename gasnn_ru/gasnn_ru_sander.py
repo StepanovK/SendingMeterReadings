@@ -10,6 +10,7 @@ def send_readings(auth_settings, readings, test_mode=False):
     wd = get_webdriver(test_mode)
     wd.get(login_page_url)
     log_in(wd, auth_settings)
+    wd.close()
 
 
 def get_webdriver(test_mode=False):
