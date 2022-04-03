@@ -1,5 +1,5 @@
-from . import commands
-# package_name = 'database'
+import gasnn_ru
+import mr_sanding
 
 
 def __init__():

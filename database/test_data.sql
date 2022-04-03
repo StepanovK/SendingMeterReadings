@@ -30,5 +30,5 @@ INSERT INTO gas_nn_meter_readings (account, date, current_value, is_sent, date_o
     VALUES (2, 1629326470, 617, 1, 1629927670);
 
 INSERT INTO gas_nn_meter_readings (account, date, current_value, is_sent, date_of_sending)
-    VALUES (2, 1632519670, 617, 0, 1629928670);
+    VALUES (2, 1647697902, 617, 0, 0);
 

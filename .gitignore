@@ -134,5 +134,5 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-gas-nn_ru/TestPages/
-gas-nn_ru/TestPages_/
+gasnn_ru/TestPages/
+gasnn_ru/TestPages_/

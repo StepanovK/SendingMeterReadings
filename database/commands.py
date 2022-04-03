@@ -119,6 +119,62 @@ async def gasnn_get_meter_readings(account_id, number: int = 0) -> list:
     return accounts
 
 
+async def gasnn_get_meter_readings_for_sending(date_from: int, number: int = 0) -> list:
+
+    conn = sqlite3.connect(db_name)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+
+    limit = 'LIMIT ' + str(number) if number != 0 else ''
+    date_filter = f'WHERE gas_nn_meter_readings.date >= {date_from}' if date_from > 0 else ''
+
+    shell = f"""CREATE VIEW LastMR AS
+            SELECT
+            gas_nn_meter_readings.account,
+            max(gas_nn_meter_readings.date) AS date
+            FROM  gas_nn_meter_readings
+            {date_filter}
+            GROUP BY account
+            ORDER BY date
+            {limit}"""
+    cursor.execute(shell)
+
+    shell = """SELECT
+            gas_nn_accounts.account_number,
+            gas_nn_accounts.user,
+            gas_nn_accounts.login,
+            gas_nn_accounts.password,
+            gas_nn_meter_readings.id,
+            gas_nn_meter_readings.account,
+            gas_nn_meter_readings.current_value,
+            gas_nn_meter_readings.date
+            FROM gas_nn_meter_readings
+            
+            INNER JOIN LastMR
+            ON
+                gas_nn_meter_readings.account = LastMR.account
+                AND gas_nn_meter_readings.date = LastMR.date
+            
+            INNER JOIN gas_nn_accounts
+            ON
+                gas_nn_meter_readings.account = gas_nn_accounts.id
+            
+            WHERE gas_nn_meter_readings.is_sent = 0"""
+    cursor.execute(shell)
+
+    meter_readings = list()
+    for row in cursor.fetchall():
+        dict_row = dict_factory(cursor, row)
+        cipher = Fernet(config.PASSWORD_ENCRYPT_KEY[-1])
+        encrypted_password = bytes(dict_row.get('password', ''), 'utf-8')
+        decrypted_password = cipher.decrypt(encrypted_password).decode('utf-8')
+        dict_row['password'] = decrypted_password
+        meter_readings.append(dict_row)
+    cursor.execute('DROP VIEW LastMR')
+    conn.close()
+    return meter_readings
+
+
 async def gasnn_add_meter_reading(account: int,
                                   date: int,
                                   current_value: int = 0,
