@@ -5,6 +5,7 @@ import mr_sanding
 import asyncio
 import multiprocessing
 import threading
+import schedule
 import handlers.registration
 import handlers.navigation
 import handlers.gasnn_edition
@@ -66,6 +67,12 @@ async def send_all_meter_readings():
 
 
 if __name__ == '__main__':
+
+    pool = multiprocessing.Pool()
+    pool.apply_async(start_sending)
+    pool.apply_async(start_polling)
+    pool.close()
+    pool.join()
     # multiprocessing.freeze_support()
     # while True:
     #     pass
@@ -87,13 +94,13 @@ if __name__ == '__main__':
     # for proc in procs:
     #     proc.join()
 
-    sending_thread = threading.Thread(target=start_sending, name='sending_thread')
-    sending_thread.start()
-
-    # bot_thread = threading.Thread(target=start_polling, name='bot_thread')
-    # bot_thread.start()
-
-    start_polling()
+    # sending_thread = threading.Thread(target=start_sending, name='sending_thread')
+    # sending_thread.start()
+    #
+    # # bot_thread = threading.Thread(target=start_polling, name='bot_thread')
+    # # bot_thread.start()
+    #
+    # start_polling()
 
 
 
