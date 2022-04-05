@@ -16,7 +16,6 @@ def start_polling():
 async def on_startup(dp: dp):
     text_message = 'Бот запущен!'
     print('\n' + text_message)
-    asyncio.create_task(send_all_meter_readings())
     # await send_to_admins(text_message)
 
 
