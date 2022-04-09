@@ -3,13 +3,13 @@ import database.commands as db
 from . import gasnn_ru_sander
 
 
-async def send_gasnn_meter_readings():
+async def send_gasnn_meter_readings(test_mode=False):
 
     sanding_day_from = 25
     sanding_day_to = 26
     max_number_of_mr_for_sending = 100
     number_of_last_days_for_sending = 20
-    test_mode = True
+
 
     time_now = datetime.datetime.now()
     if sanding_day_from <= time_now.day <= sanding_day_to or test_mode:
@@ -25,11 +25,12 @@ async def send_gasnn_meter_readings():
 
             readings = {mr.get('account_number'): mr.get('current_value')}
             auth_settings = {
-                            'email': mr.get('login'),
-                            'pass': mr.get('password'),
+                            'login': mr.get('login'),
+                            'password': mr.get('password'),
+                            'account_number': mr.get('account_number'),
                             }
 
-            gasnn_ru_sander.send_readings(auth_settings, readings, test_mode=test_mode)
+            await gasnn_ru_sander.send_readings(auth_settings, readings, test_mode=test_mode)
 
             if test_mode:
                 print('Передано показание {} от {} по лицевому счету {}'.format(

@@ -11,7 +11,7 @@ url_counter_info = 'https://www.gas-nn.ru/api/lk/getCounterInfo'
 url_indication = 'https://www.gas-nn.ru/lk/indication'
 
 
-async def send_mr(account_info: dict):
+async def send_readings(account_info: dict, readings: dict, test_mode=False):
     async with aiohttp.ClientSession() as session:
         user = fake_useragent.UserAgent().random
         headers = {
@@ -39,7 +39,7 @@ async def send_mr(account_info: dict):
             headers['Authorization'] = 'Bearer ' + access_token
             headers['Referer'] = 'https://www.gas-nn.ru/lk/indication'
 
-            params = {'ls': account_info.get('account_id')}
+            params = {'ls': account_info.get('account_number')}
 
             ls_info = await session.get(url=url_ls_info, headers=headers, params=params)
             ls_info.encoding = 'utf-8'
@@ -61,9 +61,9 @@ async def send_mr(account_info: dict):
 async def send_mrs():
     account_info = {'login': config.gasnn_test_login,
                     'password': config.gasnn_test_password,
-                    'account_id': config.gasnn_test_account_id}
+                    'account_number': config.gasnn_test_account_id}
 
-    await send_mr(account_info)
+    await send_readings(account_info)
 
 
 def main():
