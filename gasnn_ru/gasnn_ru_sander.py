@@ -3,6 +3,7 @@ import aiohttp
 import asyncio
 import json
 import config
+import datetime
 
 url = 'https://www.gas-nn.ru'
 url_login = 'https://www.gas-nn.ru/auth/login?authType=login'
@@ -12,6 +13,9 @@ url_indication = 'https://www.gas-nn.ru/lk/indication'
 
 
 async def send_readings(account_info: dict, readings: dict, test_mode=False):
+
+    sended_mr = []
+
     async with aiohttp.ClientSession() as session:
         user = fake_useragent.UserAgent().random
         headers = {
@@ -60,6 +64,16 @@ async def send_readings(account_info: dict, readings: dict, test_mode=False):
                     print(json.dumps(counters_info_js, indent=4, sort_keys=True, ensure_ascii=False))
                     if len(counters_info_js) > 0:
                         pass
+
+                response = {
+                    'account_number': account_number,
+                    'value': value,
+                    'date_of_sending': datetime.datetime.now()
+                }
+
+                sended_mr.append(response)
+
+    return sended_mr
 
 
 async def send_mrs():
