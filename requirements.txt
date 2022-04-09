@@ -3,3 +3,5 @@ environs~=9.5
 selenium
 cryptography
 schedule
+fake_useragent
+aiohttp
