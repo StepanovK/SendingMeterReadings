@@ -15,6 +15,7 @@ async def send_gasnn_meter_readings(test_mode=False):
     if sanding_day_from <= time_now.day <= sanding_day_to or test_mode:
 
         date_from = time_now - datetime.timedelta(days=number_of_last_days_for_sending)
+
         meter_readings_for_sending = await db.gasnn_get_meter_readings_for_sending(int(date_from.timestamp()),
                                                                                    max_number_of_mr_for_sending)
 
