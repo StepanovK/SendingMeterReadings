@@ -135,7 +135,7 @@ async def save_increment_input(message: Message, state: FSMContext):
                                          current_value=new_value)
         message_text = f'Значение {new_value} принято ботом. Оно будет передано в положенное время передачи'
         answer = await message.answer(text=message_text)
-        await delete_message_with_timeout(answer, 4)
+        await delete_message_with_timeout(answer, 7)
 
         message_for_delete = state_data.get('message_for_delete')
         if message_for_delete is not None and isinstance(message_for_delete, Message):

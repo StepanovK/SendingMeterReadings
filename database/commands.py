@@ -176,8 +176,8 @@ async def gasnn_get_meter_readings_for_sending(date_from: int, number: int = 0) 
 
 
 async def gasnn_add_meter_reading(account: int,
-                                  date: int,
-                                  current_value: int = 0,
+                                  date: float,
+                                  current_value: float = 0,
                                   is_sent: bool = False,
                                   date_of_sending: int = 0) -> list:
     conn = sqlite3.connect(db_name)

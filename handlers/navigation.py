@@ -207,7 +207,7 @@ async def yes_no_keyboard(question_id: str = '', callback_data: str = ''):
 
 
 async def delete_message_with_timeout(message: Message, timeout: int = 0):
-    asyncio.sleep(timeout)
+    await asyncio.sleep(timeout)
     await message.delete()
 
 
