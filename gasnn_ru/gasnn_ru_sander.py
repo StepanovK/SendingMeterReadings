@@ -39,31 +39,35 @@ async def send_readings(account_info: dict, readings: dict, test_mode=False):
             headers['Authorization'] = 'Bearer ' + access_token
             headers['Referer'] = 'https://www.gas-nn.ru/lk/indication'
 
-            params = {'ls': account_info.get('account_number')}
+            for account_number in readings:
 
-            ls_info = await session.get(url=url_ls_info, headers=headers, params=params)
-            ls_info.encoding = 'utf-8'
-            print(ls_info)
-            if ls_info.status == 200:
-                ls_info_js = json.loads(await ls_info.text())
-                print(json.dumps(ls_info_js, indent=4, sort_keys=True, ensure_ascii=False))
+                value = readings.get(account_number)
 
-            counter_info = await session.get(url=url_counter_info, params=params, headers=headers)
-            counter_info.encoding = 'utf-8'
-            print(counter_info)
-            if counter_info.status == 200:
-                counters_info_js = json.loads(await counter_info.text())
-                print(json.dumps(counters_info_js, indent=4, sort_keys=True, ensure_ascii=False))
-                if len(counters_info_js) > 0:
-                    pass
+                params = {'ls': str(account_number)}
+
+                ls_info = await session.get(url=url_ls_info, headers=headers, params=params)
+                ls_info.encoding = 'utf-8'
+                print(ls_info)
+                if ls_info.status == 200:
+                    ls_info_js = json.loads(await ls_info.text())
+                    print(json.dumps(ls_info_js, indent=4, sort_keys=True, ensure_ascii=False))
+
+                counter_info = await session.get(url=url_counter_info, params=params, headers=headers)
+                counter_info.encoding = 'utf-8'
+                print(counter_info)
+                if counter_info.status == 200:
+                    counters_info_js = json.loads(await counter_info.text())
+                    print(json.dumps(counters_info_js, indent=4, sort_keys=True, ensure_ascii=False))
+                    if len(counters_info_js) > 0:
+                        pass
 
 
 async def send_mrs():
     account_info = {'login': config.gasnn_test_login,
-                    'password': config.gasnn_test_password,
-                    'account_number': config.gasnn_test_account_id}
+                    'password': config.gasnn_test_password}
+    readings = {config.gasnn_test_account_id: 123}
 
-    await send_readings(account_info)
+    await send_readings(account_info, readings, True)
 
 
 def main():
