@@ -4,7 +4,6 @@ from . import add_test_data, create_db
 import config
 from cryptography.fernet import Fernet
 
-
 # db_name = 'db/' + DB_name
 db_name = config.DB_name
 
@@ -72,7 +71,6 @@ async def gasnn_add_account(account_info: dict):
 
 
 async def gasnn_get_account(account_id: int) -> dict:
-
     conn = sqlite3.connect(db_name)
     conn.row_factory = sqlite3.Row
 
@@ -144,7 +142,7 @@ async def gasnn_get_meter_readings_for_sending(date_from: float, number: int = 0
             gas_nn_accounts.login,
             gas_nn_accounts.password,
             gas_nn_meter_readings.id,
-            gas_nn_meter_readings.account,
+            gas_nn_meter_readings.account AS account_id,
             gas_nn_meter_readings.current_value,
             gas_nn_meter_readings.date
             FROM gas_nn_meter_readings
@@ -175,7 +173,6 @@ async def gasnn_get_meter_readings_for_sending(date_from: float, number: int = 0
 
 
 async def gasnn_get_accounts_for_autosending(date_from: float, number: int = 0) -> list:
-
     conn = sqlite3.connect(db_name)
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
@@ -183,7 +180,7 @@ async def gasnn_get_accounts_for_autosending(date_from: float, number: int = 0) 
     limit = 'LIMIT ' + str(number) if number != 0 else ''
 
     shell = f"""SELECT
-            gas_nn_accounts.id,
+            gas_nn_accounts.id AS account_id,
             gas_nn_accounts.name,
             gas_nn_accounts.login,
             gas_nn_accounts.password,

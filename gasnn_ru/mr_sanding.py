@@ -56,11 +56,22 @@ async def send_reported_mr(number_of_last_days_for_sending, max_number_of_mr_for
         if test_mode:
             print('Передача показаний: {}'.format(mr))
 
-        readings = {mr.get('account_number'): mr.get('current_value')}
+        readings = []
+        reading = {
+            'id': mr.get('id'),
+            'ls': mr.get('account_number', ''),
+            'account_id': mr.get('account_id'),
+            'value': mr.get('current_value', 0),
+            'date': mr.get('date', 0),
+            'auto_sending': False,
+            'increment': 0
+            ,
+        }
+        readings.append(reading)
         auth_settings = {
             'login': mr.get('login'),
             'password': mr.get('password'),
-            'account_number': mr.get('account_number'),
+            'account_id': mr.get('account'),
         }
 
         await gasnn_ru_sander.send_readings(auth_settings, readings, test_mode=test_mode)
@@ -87,19 +98,25 @@ async def send_autoincremented_mr(number_of_last_days_for_sending, max_number_of
         if test_mode:
             print('Передача показаний: {}'.format(mr))
 
-        # readings = {mr.get('account_number'): mr.get('current_value')}
-        # auth_settings = {
-        #     'login': mr.get('login'),
-        #     'password': mr.get('password'),
-        #     'account_number': mr.get('account_number'),
-        # }
-        #
-        # await gasnn_ru_sander.send_readings(auth_settings, readings, test_mode=test_mode)
-        #
-        # if test_mode:
-        #     print('Передано показание {} от {} по лицевому счету {}'.format(
-        #         mr.get('current_value'),
-        #         datetime.datetime.fromtimestamp(mr.get('date')),
-        #         mr.get('account_number')
-        #     )
-        #     )
+        readings = []
+        reading = {
+            'id': None,
+            'ls': mr.get('account_number', ''),
+            'account_id': mr.get('account_id'),
+            'value': 0,
+            'date': time_now.timestamp(),
+            'auto_sending': True,
+            'increment': mr.get('default_increment', 0)
+            ,
+        }
+        readings.append(reading)
+        auth_settings = {
+            'login': mr.get('login'),
+            'password': mr.get('password'),
+            'account_id': mr.get('id'),
+        }
+
+        sent_mr = await gasnn_ru_sander.send_readings(auth_settings, readings, test_mode=test_mode)
+
+        if test_mode:
+            print('Передано автоматическое показание {}'.format(reading))
