@@ -3,6 +3,7 @@ import aiohttp
 import asyncio
 import json
 import config
+from config import logger
 import datetime
 
 url = 'https://www.gas-nn.ru'
@@ -34,7 +35,7 @@ async def send_readings(account_info: dict, readings: list, test_mode=False):
         session_started = await start_session(session, account_info, headers, test_mode)
 
         if not session_started:
-            print(f'Не удалось авторизоваться на сайте gas-nn.ru под учетной записью {account_info}')
+            logger.warning(f'Не удалось авторизоваться на сайте gas-nn.ru под учетной записью {account_info}')
             return sent_mr
 
         for reading in readings:
@@ -46,7 +47,7 @@ async def send_readings(account_info: dict, readings: list, test_mode=False):
             last_mr_sending = await get_last_mr_sending(session, headers, account_number, test_mode)
 
             if last_mr_sending is None or last_mr_sending.get('value', 0) == 0:
-                print(f'Не удалось получить последнее переданное значение по лицевому счету {account_number}')
+                logger.warning(f'Не удалось получить последнее переданное значение по лицевому счету {account_number}')
 
                 continue
 
@@ -75,11 +76,11 @@ async def send_readings(account_info: dict, readings: list, test_mode=False):
                 try:
                     value = float(reading.get('value', 0))
                 except ValueError:
-                    print(f'Ошибка формата показаний {reading}')
+                    logger.warning(f'Ошибка формата показаний {reading}')
                     continue
 
                 if last_value >= value:
-                    print(f'Передаваемое значение {reading} больше предыдущего ({last_value})')
+                    logger.warning(f'Передаваемое значение {reading} больше предыдущего ({last_value})')
                     continue
 
                 # TODO: Отправка показаний
@@ -131,7 +132,7 @@ async def start_session(session, account_info: dict, headers: dict = None, test_
         headers['Referer'] = url_indication
 
     else:
-        print(f'Ошибка авторизации для аккаунта {account_info} \n {response_authorization}')
+        logger.warning(f'Ошибка авторизации для аккаунта {account_info} \n {response_authorization}',)
 
     return response_authorization.status == 200
 
@@ -176,7 +177,7 @@ async def get_ls_info(session, headers, account_number, test_mode):
         ls_info = json.loads(ls_info_text)
         print_if_test_mode(json.dumps(ls_info, indent=4, sort_keys=True, ensure_ascii=False), test_mode)
     else:
-        print(f'Ошибка при получении данных по лицевому счету {account_number}')
+        logger.warning(f'Ошибка при получении данных по лицевому счету {account_number}')
         ls_info = None
 
     return ls_info
@@ -184,7 +185,7 @@ async def get_ls_info(session, headers, account_number, test_mode):
 
 def print_if_test_mode(message, test_mode: bool = False):
     if test_mode:
-        print(message)
+        logger.info(message)
 
 
 if __name__ == '__main__':

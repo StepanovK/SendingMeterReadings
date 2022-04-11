@@ -1,8 +1,10 @@
 import datetime
 import database.commands as db
 from . import gasnn_ru_sander
+from config import logger
 
 
+@logger.catch()
 async def send_gasnn_meter_readings(test_mode=False):
     """
     Передаёт показания из базы на сайт gas-nn.ru. Настройки отправки:
@@ -40,9 +42,10 @@ async def send_gasnn_meter_readings(test_mode=False):
                                       max_number_of_mr_for_sending,
                                       test_mode)
 
-    print('Показания gas-nn.ru типа переданы')
+    logger.info('Показания gas-nn.ru типа переданы')
 
 
+@logger.catch()
 async def send_reported_mr(number_of_last_days_for_sending, max_number_of_mr_for_sending, test_mode):
     time_now = datetime.datetime.now()
     date_from = time_now - datetime.timedelta(days=number_of_last_days_for_sending)
@@ -54,7 +57,7 @@ async def send_reported_mr(number_of_last_days_for_sending, max_number_of_mr_for
     for mr in meter_readings_for_sending:
 
         if test_mode:
-            print('Передача показаний: {}'.format(mr))
+            logger.info('Передача показаний: {}'.format(mr))
 
         readings = []
         reading = {
@@ -87,7 +90,7 @@ async def send_reported_mr(number_of_last_days_for_sending, max_number_of_mr_for
             await db.gasnn_update_meter_reading(mr_id, new_info)
 
         if test_mode:
-            print('Передано показание {} от {} по лицевому счету {}'.format(
+            logger.info('Передано показание {} от {} по лицевому счету {}'.format(
                 mr.get('current_value'),
                 datetime.datetime.fromtimestamp(mr.get('date')),
                 mr.get('account_number')
@@ -95,6 +98,7 @@ async def send_reported_mr(number_of_last_days_for_sending, max_number_of_mr_for
             )
 
 
+@logger.catch()
 async def send_autoincremented_mr(number_of_last_days_for_sending, max_number_of_mr_for_sending, test_mode):
     time_now = datetime.datetime.now()
     date_from = time_now - datetime.timedelta(days=number_of_last_days_for_sending)
@@ -106,7 +110,7 @@ async def send_autoincremented_mr(number_of_last_days_for_sending, max_number_of
     for mr in meter_readings_for_sending:
 
         if test_mode:
-            print('Передача показаний: {}'.format(mr))
+            logger.info('Передача показаний: {}'.format(mr))
 
         readings = []
         reading = {
@@ -139,4 +143,4 @@ async def send_autoincremented_mr(number_of_last_days_for_sending, max_number_of
                                              date_of_sending=reading.get('date_of_sending'))
 
         if test_mode:
-            print('Передано автоматическое показание {}'.format(reading))
+            logger.info('Передано автоматическое показание {}'.format(reading))

@@ -1,5 +1,5 @@
 from aiogram import executor
-from loader import dp, bot
+from loader import dp, bot, logger
 from config import ADMINS
 import asyncio
 import handlers.registration
@@ -15,13 +15,13 @@ def start_polling():
 
 async def on_startup(dp: dp):
     text_message = 'Бот запущен!'
-    print('\n' + text_message)
+    logger.info(text_message)
     # await send_to_admins(text_message)
 
 
 async def on_shutdown(dp: dp):
     text_message = 'Бот остановлен'
-    print('\n' + text_message)
+    logger.info(text_message)
     # await send_to_admins(text_message)
 
 

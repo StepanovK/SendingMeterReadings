@@ -7,7 +7,7 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
 import asyncio
 import database.commands as db
-from loader import dp, bot
+from loader import dp, bot, logger
 from typing import Union
 import config
 import time
@@ -26,8 +26,7 @@ class MainStates(StatesGroup):
 @dp.message_handler(commands=['stop'], state='*')
 async def stop_bot(message: Message, state: FSMContext):
     if str(message.chat.id) in config.ADMINS:
-        pass
-        # dp.stop_polling()
+        await dp.stop_polling()
     else:
         await message.answer(text='У вас нет прав на выполнение этой команды!')
 
@@ -52,6 +51,7 @@ async def text_and_markup_for_main_menu(user_id: int):
     return text, reply_markup
 
 
+@logger.catch()
 @dp.callback_query_handler(main_menu_cbd.filter(), state=MainStates.MainMenuNavigation)
 async def show_main_menu(call: CallbackQuery, callback_data: dict, state: FSMContext):
     await call.message.edit_text(text='Выберите, что нужно сделать', reply_markup=main_menu())
@@ -59,6 +59,7 @@ async def show_main_menu(call: CallbackQuery, callback_data: dict, state: FSMCon
     await MainStates.MainMenuNavigation.set()
 
 
+@logger.catch()
 @dp.message_handler(commands=['reset'], state='*')
 async def reset_database(message: Message, state: FSMContext):
     if str(message.chat.id) in config.ADMINS:
@@ -206,11 +207,13 @@ async def yes_no_keyboard(question_id: str = '', callback_data: str = ''):
     return yn_keyboard
 
 
+@logger.catch()
 async def delete_message_with_timeout(message: Message, timeout: int = 0):
     await asyncio.sleep(timeout)
     await message.delete()
 
 
+@logger.catch()
 @dp.message_handler(state=MainStates.MainMenuNavigation)
 async def delete_wrong_message(message: Message, state: FSMContext):
 
@@ -221,6 +224,7 @@ async def delete_wrong_message(message: Message, state: FSMContext):
         await bot.delete_message(chat_id=state.chat, message_id=message.message_id)
 
 
+@logger.catch()
 @dp.callback_query_handler(state=None)
 async def go_home_menu(call: CallbackQuery = None, callback_data: dict = None, state: FSMContext = None):
 

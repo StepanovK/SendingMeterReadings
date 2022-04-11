@@ -6,7 +6,7 @@ from aiogram.utils.callback_data import CallbackData
 import database.commands as db
 import time
 
-from loader import dp, bot
+from loader import dp, bot, logger
 from aiogram.dispatcher.filters.state import StatesGroup, State
 
 from .navigation import gasnn_account_cbd,\
@@ -193,6 +193,7 @@ async def delete_account_confirm(callback: CallbackQuery, callback_data: dict, s
     await MainStates.MainMenuNavigation.set()
 
 
+@logger.catch()
 @dp.callback_query_handler(gasnn_cancel.filter(), state=RegStates.Gas_attribute_choose)
 async def ask_before_delete_account(callback_q: CallbackQuery, callback_data: dict, state: FSMContext):
     await state.get_data()
@@ -201,6 +202,7 @@ async def ask_before_delete_account(callback_q: CallbackQuery, callback_data: di
     await bot.answer_callback_query(callback_q.id)
 
 
+@logger.catch()
 @dp.message_handler(state=RegStates.Gas_attribute_choose)
 @dp.message_handler(state=RegStates.Gas_delete_account_confirmation)
 async def delete_wrong_message(message: Message, state: FSMContext):
