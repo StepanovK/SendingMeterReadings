@@ -32,8 +32,3 @@ async def send_to_admins(text_message: str):
 
 if __name__ == '__main__':
     start_polling()
-
-
-
-
-

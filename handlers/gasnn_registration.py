@@ -158,7 +158,6 @@ async def input_default_increment(message: Message, state: FSMContext):
 
 
 async def end_input(state: FSMContext):
-
     data = await state.get_data()
 
     message_text = "Вы ввели следующие данные:" \

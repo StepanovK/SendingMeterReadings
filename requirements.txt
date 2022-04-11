@@ -5,3 +5,4 @@ cryptography
 schedule
 fake_useragent
 aiohttp
+loguru

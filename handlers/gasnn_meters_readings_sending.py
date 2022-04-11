@@ -9,9 +9,8 @@ import database.commands as db
 from loader import dp, bot
 from aiogram.dispatcher.filters.state import StatesGroup, State
 
-from .navigation import gasnn_account_cbd,\
+from .navigation import gasnn_account_cbd, \
     yes_no_cbd, yes_no_keyboard, select_operator_menu, delete_message_with_timeout, MainStates
-
 
 gasnn_input_readings = CallbackData('gasnn_input_readings', 'id')
 gasnn_cancel_input_readings = CallbackData('gasnn_cancel_input', 'id')
@@ -24,7 +23,6 @@ class RegStates(StatesGroup):
 
 @dp.callback_query_handler(gasnn_account_cbd.filter(action='send_mr'), state=MainStates.MainMenuNavigation)
 async def start_edit(callback_q: CallbackQuery, callback_data: dict, state: FSMContext):
-
     account_id = callback_data.get('id')
     meter_readings = await db.gasnn_get_meter_readings(account_id, 5)
     if len(meter_readings) == 0:
@@ -85,7 +83,6 @@ async def change_auto_sending(callback_q: CallbackQuery, callback_data: dict, st
 
 @dp.callback_query_handler(gasnn_input_readings.filter(), state=RegStates.Gas_SM_show)
 async def change_increment(callback_q: CallbackQuery, callback_data: dict, state: FSMContext):
-
     await bot.answer_callback_query(callback_q.id)
 
     message_text = 'Введите новое значение для передачи:'
@@ -114,7 +111,6 @@ async def change_increment(callback_q: CallbackQuery, callback_data: dict, state
 
 @dp.message_handler(state=RegStates.Gas_InputReadings)
 async def save_increment_input(message: Message, state: FSMContext):
-
     new_value = message.text
 
     try:
@@ -150,8 +146,7 @@ async def save_increment_input(message: Message, state: FSMContext):
 
 @dp.message_handler(state=RegStates.Gas_SM_show)
 async def delete_wrong_message(message: Message, state: FSMContext):
-    if message is not None\
-            and isinstance(message, Message)\
+    if message is not None \
+            and isinstance(message, Message) \
             and not message.from_user.is_bot:
         await bot.delete_message(chat_id=state.chat, message_id=message.message_id)
-

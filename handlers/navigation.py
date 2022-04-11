@@ -110,8 +110,8 @@ def operator_menu(action: str):
 
 
 @dp.callback_query_handler(operator_cbd.filter(action='menu_edit'), state=MainStates.MainMenuNavigation)
-async def select_operator_for_edit(call_or_message: Union[CallbackQuery, Message], callback_data: dict, state: FSMContext):
-
+async def select_operator_for_edit(call_or_message: Union[CallbackQuery, Message], callback_data: dict,
+                                   state: FSMContext):
     if isinstance(call_or_message, CallbackQuery):
         message = call_or_message.message
         await bot.answer_callback_query(call_or_message.id)
@@ -129,8 +129,8 @@ async def select_operator_for_edit(call_or_message: Union[CallbackQuery, Message
 
 
 @dp.callback_query_handler(operator_cbd.filter(action='menu_snd_mr'), state=MainStates.MainMenuNavigation)
-async def select_operator_sending_mr(call_or_message: Union[CallbackQuery, Message], callback_data: dict, state: FSMContext):
-
+async def select_operator_sending_mr(call_or_message: Union[CallbackQuery, Message], callback_data: dict,
+                                     state: FSMContext):
     if isinstance(call_or_message, CallbackQuery):
         message = call_or_message.message
         await bot.answer_callback_query(call_or_message.id)
@@ -148,7 +148,6 @@ async def select_operator_sending_mr(call_or_message: Union[CallbackQuery, Messa
 
 
 async def select_operator_menu(operator, action, user_id, main_menu_message_id=0):
-
     if action == 'menu_edit':
         next_action = 'edit'
     elif action == 'menu_snd_mr':
@@ -178,7 +177,6 @@ async def meter_menu_gasnn_ru(user_id, action, last_action, main_menu_message_id
     accounts = await db.gasnn_get_accounts(user_id)
     menu = Markup()
     for account in accounts:
-        # print(account)
         text = '{} ({})'.format(account.get('name'), account.get('login'))
         callback_data = gasnn_account_cbd.new(id=account.get('id'),
                                               action=action,
@@ -191,7 +189,6 @@ async def meter_menu_gasnn_ru(user_id, action, last_action, main_menu_message_id
 
 
 async def yes_no_keyboard(question_id: str = '', callback_data: str = ''):
-
     question_id = 'None' if question_id == '' else question_id
     callback_data = 'None' if callback_data == '' else callback_data
 
@@ -216,18 +213,15 @@ async def delete_message_with_timeout(message: Message, timeout: int = 0):
 @logger.catch()
 @dp.message_handler(state=MainStates.MainMenuNavigation)
 async def delete_wrong_message(message: Message, state: FSMContext):
-
     if message is not None \
-            and isinstance(message, Message)\
+            and isinstance(message, Message) \
             and not message.from_user.is_bot:
-
         await bot.delete_message(chat_id=state.chat, message_id=message.message_id)
 
 
 @logger.catch()
 @dp.callback_query_handler(state=None)
 async def go_home_menu(call: CallbackQuery = None, callback_data: dict = None, state: FSMContext = None):
-
     """
     Если состояние неизвестно, значит нужно вернуться в главное меню
     """
@@ -237,8 +231,10 @@ async def go_home_menu(call: CallbackQuery = None, callback_data: dict = None, s
     text, reply_markup = await text_and_markup_for_main_menu(call.message.chat.id)
     try:
         await call.message.edit_text(text=text, reply_markup=reply_markup)
-    except Exception:
-        print('Не удалось вернуть пользователя {} в главное меню. Возможно, он уже в нём.'.format(call.message.chat.id))
+    except Exception as ex:
+        logger.warning(
+            f'Не удалось вернуть пользователя {call.message.chat.id} в главное меню. Возможно, он уже в нём. \n{ex}'
+        )
 
     await MainStates.MainMenuNavigation.set()
 
@@ -247,5 +243,3 @@ async def clear_message(chat_id: int, messages_id: list):
     for message_id in messages_id:
         await bot.delete_message(chat_id, message_id)
     messages_id.clear()
-
-

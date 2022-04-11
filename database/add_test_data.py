@@ -2,6 +2,7 @@ import sqlite3
 import config
 
 
+@config.logger.catch()
 def add_test_data():
     conn = sqlite3.connect(config.DB_name)
     cursor = conn.cursor()

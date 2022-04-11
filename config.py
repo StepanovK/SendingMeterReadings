@@ -1,7 +1,6 @@
 from environs import Env
 import loguru
 
-
 logger = loguru.logger
 logger.add('sending_log.log', format='{time} {level} {message}', rotation='512 KB', compression='zip')
 

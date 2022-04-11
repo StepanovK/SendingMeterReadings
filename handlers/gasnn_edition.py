@@ -9,9 +9,8 @@ import time
 from loader import dp, bot, logger
 from aiogram.dispatcher.filters.state import StatesGroup, State
 
-from .navigation import gasnn_account_cbd,\
+from .navigation import gasnn_account_cbd, \
     yes_no_cbd, yes_no_keyboard, select_operator_menu, delete_message_with_timeout, MainStates
-
 
 gasnn_change_auto_sending = CallbackData('gasnn_change_auto_sending', 'id', 'auto_sending')
 gasnn_change_increment_button = CallbackData('gasnn_change_increment_button', 'id', 'default_increment')
@@ -27,7 +26,6 @@ class RegStates(StatesGroup):
 
 @dp.callback_query_handler(gasnn_account_cbd.filter(action='edit'), state=MainStates.MainMenuNavigation)
 async def start_edit(callback_q: CallbackQuery, callback_data: dict, state: FSMContext):
-
     account_id = callback_data.get('id')
     account_info = await db.gasnn_get_account(account_id)
     auto_sending = account_info.get('auto_sending', False)
@@ -89,7 +87,6 @@ async def change_auto_sending(callback_q: CallbackQuery, callback_data: dict, st
 
 @dp.callback_query_handler(gasnn_change_increment_button.filter(), state=RegStates.Gas_attribute_choose)
 async def change_increment(callback_q: CallbackQuery, callback_data: dict, state: FSMContext):
-
     await db.gasnn_set_attribute_account(account_id=callback_data.get('id'),
                                          attribute='auto_sending',
                                          value=bool(callback_data.get('auto_sending')))
@@ -112,7 +109,6 @@ async def change_increment(callback_q: CallbackQuery, callback_data: dict, state
 
 @dp.message_handler(state=RegStates.Gas_default_increment_input)
 async def save_increment_input(message: Message, state: FSMContext):
-
     await MainStates.MainMenuNavigation.set()
 
     new_value = message.text
@@ -129,7 +125,6 @@ async def save_increment_input(message: Message, state: FSMContext):
     if isinstance(new_value, float) \
             and isinstance(account_id, int) \
             and account_id != 0:
-
         await db.gasnn_set_attribute_account(account_id=account_id, attribute='default_increment', value=new_value)
 
         answer = await message.answer(text='Новое значение установлено!')
@@ -145,7 +140,6 @@ async def save_increment_input(message: Message, state: FSMContext):
 
 @dp.callback_query_handler(gasnn_delete_account.filter(), state=RegStates.Gas_attribute_choose)
 async def ask_before_delete_account(callback_q: CallbackQuery, callback_data: dict, state: FSMContext):
-
     account_id = int(callback_data.get('id', 0))
     markup = await yes_no_keyboard(question_id='delete_gasnn_account', callback_data=str(account_id))
     account_info = await db.gasnn_get_account(account_id)
@@ -163,7 +157,6 @@ async def ask_before_delete_account(callback_q: CallbackQuery, callback_data: di
 @dp.callback_query_handler(yes_no_cbd.filter(question_id='delete_gasnn_account'),
                            state=RegStates.Gas_delete_account_confirmation)
 async def delete_account_confirm(callback: CallbackQuery, callback_data: dict, state: FSMContext):
-
     deletion_confirmed = bool(int(callback_data.get('value', 0)))
     account_id = int(callback_data.get('callback_data', 0))
 
@@ -206,9 +199,7 @@ async def ask_before_delete_account(callback_q: CallbackQuery, callback_data: di
 @dp.message_handler(state=RegStates.Gas_attribute_choose)
 @dp.message_handler(state=RegStates.Gas_delete_account_confirmation)
 async def delete_wrong_message(message: Message, state: FSMContext):
-    if message is not None\
-            and isinstance(message, Message)\
+    if message is not None \
+            and isinstance(message, Message) \
             and not message.from_user.is_bot:
         await bot.delete_message(chat_id=state.chat, message_id=message.message_id)
-
-
