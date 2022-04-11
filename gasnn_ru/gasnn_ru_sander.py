@@ -43,18 +43,19 @@ async def send_readings(account_info: dict, readings: list, test_mode=False):
 
             ls_info = await get_ls_info(session, headers, account_number, test_mode)
 
+            last_mr_sending = await get_last_mr_sending(session, headers, account_number, test_mode)
+
+            if last_mr_sending is None or last_mr_sending.get('value', 0) == 0:
+                print(f'Не удалось получить последнее переданное значение по лицевому счету {account_number}')
+
+                continue
+
+            last_value = last_mr_sending.get('value', 0)
+
             auto_sending = reading.get('auto_sending', False)
 
             if auto_sending:
 
-                last_mr_sending = await get_last_mr_sending(session, headers, account_number, test_mode)
-
-                if last_mr_sending is None or last_mr_sending.get('value', 0) == 0:
-                    print(f'Не удалось получить последнее переданное значение по лицевому счету {account_number}')
-
-                    continue
-
-                last_value = last_mr_sending.get('value', 0)
                 value_for_send = last_value + reading.get('increment', 0)
 
                 # TODO: Отправка показаний
@@ -71,19 +72,29 @@ async def send_readings(account_info: dict, readings: list, test_mode=False):
 
             else:
 
+                try:
+                    value = float(reading.get('value', 0))
+                except ValueError:
+                    print(f'Ошибка формата показаний {reading}')
+                    continue
+
+                if last_value >= value:
+                    print(f'Передаваемое значение {reading} больше предыдущего ({last_value})')
+                    continue
+
                 # TODO: Отправка показаний
 
                 response = {
                     'id': reading.get('id'),
                     'account_id': reading.get('account_id'),
                     'account_number': account_number,
-                    'value': 00000000000000000000000000000000000000,
+                    'value': value,
                     'date_of_sending': datetime.datetime.now().timestamp()
                 }
 
                 sent_mr.append(response)
 
-    session.close()
+    await session.close()
 
     return sent_mr
 

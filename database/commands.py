@@ -213,7 +213,7 @@ async def gasnn_add_meter_reading(account: int,
                                   date: float,
                                   current_value: float = 0,
                                   is_sent: bool = False,
-                                  date_of_sending: int = 0) -> list:
+                                  date_of_sending: int = 0):
     conn = sqlite3.connect(db_name)
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
@@ -228,6 +228,25 @@ async def gasnn_set_attribute_account(account_id: int, attribute: str, value):
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
     cursor.execute("UPDATE gas_nn_accounts set {} = ? where id = ?".format(attribute), (value, account_id))
+    conn.commit()
+
+
+async def gasnn_update_meter_reading(mr_id: int, new_info: dict):
+    if len(new_info) == 0:
+        return
+    conn = sqlite3.connect(db_name)
+    cursor = conn.cursor()
+    attribute_texts = []
+    values = []
+    for attribute in new_info:
+        attribute_texts.append('{} = ?'.format(attribute))
+        values.append(new_info[attribute])
+    shell = """UPDATE gas_nn_meter_readings
+    SET
+    {} 
+    WHERE id = ?""".format(',\n'.join(attribute_texts))
+    values.append(mr_id)
+    cursor.execute(shell, values)
     conn.commit()
 
 

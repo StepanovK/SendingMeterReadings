@@ -71,10 +71,20 @@ async def send_reported_mr(number_of_last_days_for_sending, max_number_of_mr_for
         auth_settings = {
             'login': mr.get('login'),
             'password': mr.get('password'),
-            'account_id': mr.get('account'),
+            'account_id': mr.get('account_id'),
         }
 
-        await gasnn_ru_sander.send_readings(auth_settings, readings, test_mode=test_mode)
+        readings = await gasnn_ru_sander.send_readings(auth_settings, readings, test_mode=test_mode)
+
+        for reading in readings:
+            mr_id = reading.get('id')
+            if mr_id is None or id == 0 or id == '':
+                continue
+            new_info = {
+                'is_sent': 1,
+                'date_of_sending': reading.get('date_of_sending')
+            }
+            await db.gasnn_update_meter_reading(mr_id, new_info)
 
         if test_mode:
             print('Передано показание {} от {} по лицевому счету {}'.format(
@@ -90,7 +100,7 @@ async def send_autoincremented_mr(number_of_last_days_for_sending, max_number_of
     date_from = time_now - datetime.timedelta(days=number_of_last_days_for_sending)
 
     meter_readings_for_sending = await db.gasnn_get_accounts_for_autosending(
-        float(date_from.timestamp()),
+        date_from.timestamp(),
         max_number_of_mr_for_sending)
 
     for mr in meter_readings_for_sending:
@@ -113,10 +123,20 @@ async def send_autoincremented_mr(number_of_last_days_for_sending, max_number_of
         auth_settings = {
             'login': mr.get('login'),
             'password': mr.get('password'),
-            'account_id': mr.get('id'),
+            'account_id': mr.get('account_id'),
         }
 
-        sent_mr = await gasnn_ru_sander.send_readings(auth_settings, readings, test_mode=test_mode)
+        readings = await gasnn_ru_sander.send_readings(auth_settings, readings, test_mode=test_mode)
+
+        for reading in readings:
+            value = reading.get('value')
+            if value is None or value == 0:
+                continue
+            await db.gasnn_add_meter_reading(account=reading.get('account_id'),
+                                             date=reading.get('date_of_sending'),
+                                             current_value=value,
+                                             is_sent=True,
+                                             date_of_sending=reading.get('date_of_sending'))
 
         if test_mode:
             print('Передано автоматическое показание {}'.format(reading))
