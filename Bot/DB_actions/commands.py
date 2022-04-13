@@ -4,8 +4,7 @@ from . import add_test_data, create_db
 import config
 from cryptography.fernet import Fernet
 
-# db_name = 'db/' + DB_name
-db_name = config.DB_name
+db_name = './' + config.DB_name
 
 
 async def user_is_registered(user_id: int):

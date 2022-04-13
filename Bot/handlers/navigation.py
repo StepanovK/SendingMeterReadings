@@ -1,16 +1,14 @@
 from aiogram.types import CallbackQuery, Message
 from aiogram.types import InlineKeyboardButton as Button
 from aiogram.types import InlineKeyboardMarkup as Markup
-# from aiogram.utils import callback_data
 from aiogram.utils.callback_data import CallbackData
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
 import asyncio
-import database.commands as db
+from DB_actions import commands as db
 from loader import dp, bot, logger
 from typing import Union
 import config
-import time
 
 operators_cbd = CallbackData('show_operators_menu', 'action')
 operator_cbd = CallbackData('show_operator', 'operator', 'action', 'last_action', 'main_menu_message_id')

@@ -1,5 +1,5 @@
 import datetime
-import database.commands as db
+from DB_actions import commands as db
 from . import gasnn_ru_sander
 from config import logger
 
@@ -46,7 +46,7 @@ async def send_gasnn_meter_readings(test_mode=False):
 
 
 @logger.catch()
-async def send_reported_mr(number_of_last_days_for_sending, max_number_of_mr_for_sending, test_mode):
+async def send_reported_mr(number_of_last_days_for_sending, max_number_of_mr_for_sending, test_mode=False):
     time_now = datetime.datetime.now()
     date_from = time_now - datetime.timedelta(days=number_of_last_days_for_sending)
 
@@ -99,7 +99,7 @@ async def send_reported_mr(number_of_last_days_for_sending, max_number_of_mr_for
 
 
 @logger.catch()
-async def send_autoincremented_mr(number_of_last_days_for_sending, max_number_of_mr_for_sending, test_mode):
+async def send_autoincremented_mr(number_of_last_days_for_sending, max_number_of_mr_for_sending, test_mode=False):
     time_now = datetime.datetime.now()
     date_from = time_now - datetime.timedelta(days=number_of_last_days_for_sending)
 

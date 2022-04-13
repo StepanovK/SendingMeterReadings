@@ -3,8 +3,7 @@ from aiogram.dispatcher import FSMContext
 from aiogram.types import InlineKeyboardButton as Button
 from aiogram.types import InlineKeyboardMarkup as Markup
 from aiogram.utils.callback_data import CallbackData
-import database.commands as db
-import time
+from DB_actions import commands as db
 
 from loader import dp, bot, logger
 from aiogram.dispatcher.filters.state import StatesGroup, State

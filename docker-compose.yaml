@@ -1,0 +1,24 @@
+version: "1"
+
+volumes:
+  BD_SQLite_volume:
+  Logs_volume:
+
+services:
+  Bot:
+    build: Bot/
+    restart: always
+    enviroment:
+      - TZ=Europe/Moscow
+    volumes:
+      - BD_SQLite_volume:/Database
+      - Logs_volume:/Logs
+
+  MeterSender:
+    build: MeterSender/
+    restart: always
+    enviroment:
+      - TZ=Europe/Moscow
+    volumes:
+      - BD_SQLite_volume:/Database
+      - Logs_volume:/Logs

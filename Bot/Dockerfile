@@ -6,5 +6,5 @@ RUN pip install -r requirements.txt
 
 COPY ./ ./
 
-CMD ["python", "server.py", "python", "mr_sanding.py"]
+CMD ["python", "server.py"]
 

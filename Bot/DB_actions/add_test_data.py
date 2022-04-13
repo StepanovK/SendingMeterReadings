@@ -1,0 +1,17 @@
+import sqlite3
+import config
+
+
+@config.logger.catch()
+def add_test_data():
+    conn = sqlite3.connect(config.DB_name)
+    cursor = conn.cursor()
+    with open("DB_actions/test_data.sql", "r") as f:
+        sql = f.read()
+        cursor.executescript(sql)
+        conn.commit()
+
+
+if __name__ == '__main__':
+    add_test_data()
+

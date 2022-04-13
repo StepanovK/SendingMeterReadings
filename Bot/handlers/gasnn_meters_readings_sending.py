@@ -4,7 +4,7 @@ from aiogram.types import InlineKeyboardButton as Button
 from aiogram.types import InlineKeyboardMarkup as Markup
 from aiogram.utils.callback_data import CallbackData
 from datetime import datetime
-import database.commands as db
+from DB_actions import commands as db
 
 from loader import dp, bot
 from aiogram.dispatcher.filters.state import StatesGroup, State
