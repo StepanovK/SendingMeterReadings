@@ -27,4 +27,4 @@ test_mode=True/False - для отладки
 ```pycon
 pip install -r requirements.txt
 ```
-
+в каждом микросервисе свой файл requirements.txt
