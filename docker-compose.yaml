@@ -1,23 +1,23 @@
-version: "1"
+version: "3"
 
 volumes:
   BD_SQLite_volume:
   Logs_volume:
 
 services:
-  Bot:
+  smr-bot:
     build: Bot/
     restart: always
-    enviroment:
+    environment:
       - TZ=Europe/Moscow
     volumes:
       - BD_SQLite_volume:/Database
       - Logs_volume:/Logs
 
-  MeterSender:
+  smr-meter_sender:
     build: MeterSender/
     restart: always
-    enviroment:
+    environment:
       - TZ=Europe/Moscow
     volumes:
       - BD_SQLite_volume:/Database
