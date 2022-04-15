@@ -12,6 +12,11 @@
 ADMIN=телеграм_ID_админа
 BOT_TOKEN=телеграм_токен_бота
 PASSWORD_ENCRYPT_KEY=Ключ_для_шифрования_паролей_в_базе_данных_45_символов
+db_host=localhost_или_IP
+db_port=5432_или_другой
+db_user=postgres
+db_password=password
+db_name=smr
 ```
 
 в каталоге `MeterSender` файл '.env' с содержимым:
