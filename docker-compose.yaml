@@ -24,10 +24,7 @@ services:
     environment:
       - TZ=Europe/Moscow
     volumes:
-      - pg_data:/var/lib/postgresql/data
       - Logs_volume:/Logs
-    ports:
-      - "5432:5432"
 
   smr-meter_sender:
     build: MeterSender/
@@ -35,5 +32,4 @@ services:
     environment:
       - TZ=Europe/Moscow
     volumes:
-      - BD_SQLite_volume:/Database
       - Logs_volume:/Logs

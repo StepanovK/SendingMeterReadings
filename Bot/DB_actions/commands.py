@@ -1,13 +1,9 @@
-import sqlite3
-import os
 from loader import logger
 import config
 from cryptography.fernet import Fernet
 import psycopg2
 import psycopg2.extras
 
-
-# db_name = './' + config.DB_name
 
 def get_pg_connection():
     try:

@@ -2,7 +2,7 @@ from environs import Env
 import loguru
 
 logger = loguru.logger
-logger.add('sending_log.log', format='{time} {level} {message}', rotation='512 KB', compression='zip')
+logger.add('Logs/sending_log.log', format='{time} {level} {message}', rotation='512 KB', compression='zip')
 
 env = Env()
 env.read_env()
@@ -13,4 +13,8 @@ gasnn_test_login = env.str("gasnn_test_login")
 gasnn_test_password = env.str("gasnn_test_password")
 gasnn_test_account_id = env.str("gasnn_test_account_id")
 
-DB_name = 'Database/smr.db'
+db_host = env.str("db_host")
+db_port = env.str("db_port")
+db_user = env.str("db_user")
+db_password = env.str("db_password")
+db_name = env.str("db_name")

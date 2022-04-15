@@ -3,3 +3,4 @@ cryptography
 fake-useragent
 aiohttp
 loguru
+psycopg2
