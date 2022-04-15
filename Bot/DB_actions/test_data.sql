@@ -1,7 +1,7 @@
-INSERT INTO users (id, username, first_name) 
+INSERT INTO users (id, username, first_name)
     VALUES (300925449, 'duffman152', 'duffman152');
 
-INSERT INTO gas_nn_accounts (user, name, login, password, account_number, family_name, auto_sending)
+INSERT INTO gas_nn_accounts ("user", name, login, password, account_number, family_name, auto_sending)
     VALUES (
       300925449,
      '—четчик в квартире',
@@ -12,7 +12,7 @@ INSERT INTO gas_nn_accounts (user, name, login, password, account_number, family
      0
      );
 
-INSERT INTO gas_nn_accounts (user, name, login, password, account_number, family_name, auto_sending)
+INSERT INTO gas_nn_accounts ("user", name, login, password, account_number, family_name, auto_sending)
     VALUES (
       300925449,
      '—четчик в доме',
@@ -23,12 +23,12 @@ INSERT INTO gas_nn_accounts (user, name, login, password, account_number, family
       1
       );
 
-INSERT INTO gas_nn_meter_readings (account, date, current_value, is_sent, date_of_sending)
+INSERT INTO gas_nn_meter_readings (account, "date", current_value, is_sent, date_of_sending)
     VALUES (2, 1627076470, 617, 1, 1627249270);
 
-INSERT INTO gas_nn_meter_readings (account, date, current_value, is_sent, date_of_sending)
+INSERT INTO gas_nn_meter_readings (account, "date", current_value, is_sent, date_of_sending)
     VALUES (2, 1629326470, 617, 1, 1629927670);
 
-INSERT INTO gas_nn_meter_readings (account, date, current_value, is_sent, date_of_sending)
+INSERT INTO gas_nn_meter_readings (account, "date", current_value, is_sent, date_of_sending)
     VALUES (2, 1647697902, 617, 0, 0);
 

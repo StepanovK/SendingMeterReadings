@@ -61,8 +61,17 @@ async def show_main_menu(call: CallbackQuery, callback_data: dict, state: FSMCon
 @dp.message_handler(commands=['reset'], state='*')
 async def reset_database(message: Message, state: FSMContext):
     if str(message.chat.id) in config.ADMINS:
-        await db.reset_database()
+        db.reset_database()
         await message.reply('База данных очищена! Нажмите команду /start')
+    await state.reset_state()
+
+
+@logger.catch()
+@dp.message_handler(commands=['addtestdata'], state='*')
+async def add_test_data(message: Message, state: FSMContext):
+    if str(message.chat.id) in config.ADMINS:
+        await db.add_test_data()
+        await message.reply('Тестовые данные добавлены! Нажмите команду /start')
     await state.reset_state()
 
 
