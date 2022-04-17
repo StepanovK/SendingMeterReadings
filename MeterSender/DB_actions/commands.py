@@ -16,7 +16,9 @@ def get_bd_connection():
         )
         return connection
     except Exception as ex:
-        logger.error("Проблема при подключении к базе данных PostgreSQL", ex)
+        connection_info = f'host={config.db_host}, port={config.db_port},' \
+                          f' user={config.db_user} password={config.db_password}'
+        logger.error(f"Проблема при подключении к базе данных {config.db_name}\n({connection_info}):", ex)
         return None
 
 

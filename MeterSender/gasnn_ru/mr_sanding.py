@@ -22,6 +22,11 @@ async def send_gasnn_meter_readings(test_mode=False):
     max_number_of_mr_for_sending = 100
     number_of_last_days_for_sending = 23
 
+    connection = db.get_bd_connection()
+    if connection is None:
+        logger.error('Не удалось подключиться к базе данных. Отправка показаний gas-nn.ru отменена!')
+        return
+
     time_now = datetime.datetime.now()
 
     if test_mode:
