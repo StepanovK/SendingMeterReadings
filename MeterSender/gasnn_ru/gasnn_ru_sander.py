@@ -7,11 +7,12 @@ from config import logger
 import datetime
 
 url = 'https://www.gas-nn.ru'
-url_login = 'https://www.gas-nn.ru/auth/login?authType=login'
-url_ls_info = 'https://www.gas-nn.ru/api/lk/getLschetInfo'
-url_counter_info = 'https://www.gas-nn.ru/api/lk/getCounterInfo'
-url_counter_history = 'https://www.gas-nn.ru/api/lk/getCounterHistory'
-url_indication = 'https://www.gas-nn.ru/lk/indication'
+url_login = url + '/auth/login?authType=login'
+url_ls_info = url + '/api/lk/getLschetInfo'
+url_counter_info = url + '/api/lk/getCounterInfo'
+url_counter_history = url + '/api/lk/getCounterHistory'
+url_indication = url + '/lk/indication'
+url_set_counter_value = url + '/api/lk/setCounterValue'
 
 
 def main():
@@ -52,6 +53,14 @@ async def send_readings(account_info: dict, readings: list, test_mode=False):
                 continue
 
             last_value = last_mr_sending.get('value', 0)
+            try:
+                last_value = float(last_value)
+            except ValueError:
+                logger.warning(
+                    f'Не удалось преобразовать прошлое переданное значение'f' {last_value} к числу! '
+                    f'Лицевой счет: {account_number}'
+                )
+                last_value = 0
 
             auto_sending = reading.get('auto_sending', False)
 
@@ -59,41 +68,43 @@ async def send_readings(account_info: dict, readings: list, test_mode=False):
 
                 value_for_send = last_value + reading.get('increment', 0)
 
-                # TODO: Отправка показаний
+                sending_finished = await send_mr(session, headers, account_number, value_for_send, test_mode)
 
-                response = {
-                    'id': reading.get('id'),
-                    'account_id': reading.get('account_id'),
-                    'account_number': account_number,
-                    'value': value_for_send,
-                    'date_of_sending': datetime.datetime.now().timestamp()
-                }
-
-                sent_mr.append(response)
+                if sending_finished:
+                    response = {
+                        'id': reading.get('id'),
+                        'account_id': reading.get('account_id'),
+                        'account_number': account_number,
+                        'value': value_for_send,
+                        'date_of_sending': datetime.datetime.now().timestamp()
+                    }
+                    sent_mr.append(response)
 
             else:
 
+                value = reading.get('value', 0)
                 try:
-                    value = float(reading.get('value', 0))
+                    value = float(value)
                 except ValueError:
-                    logger.warning(f'Ошибка формата показаний {reading}')
+                    logger.warning(f'Ошибка формата показаний {value}. Лицевой счет: {account_number}')
                     continue
 
-                if last_value >= value:
-                    logger.warning(f'Передаваемое значение {reading} больше предыдущего ({last_value})')
+                if value < last_value:
+                    logger.warning(f'Передаваемое значение {value} меньше предыдущего ({last_value})! '
+                                   f'Лицевой счет: {account_number}')
                     continue
 
-                # TODO: Отправка показаний
+                sending_finished = await send_mr(session, headers, account_number, value, test_mode)
 
-                response = {
-                    'id': reading.get('id'),
-                    'account_id': reading.get('account_id'),
-                    'account_number': account_number,
-                    'value': value,
-                    'date_of_sending': datetime.datetime.now().timestamp()
-                }
-
-                sent_mr.append(response)
+                if sending_finished:
+                    response = {
+                        'id': reading.get('id'),
+                        'account_id': reading.get('account_id'),
+                        'account_number': account_number,
+                        'value': value,
+                        'date_of_sending': datetime.datetime.now().timestamp()
+                    }
+                    sent_mr.append(response)
 
     await session.close()
 
@@ -132,7 +143,7 @@ async def start_session(session, account_info: dict, headers: dict = None, test_
         headers['Referer'] = url_indication
 
     else:
-        logger.warning(f'Ошибка авторизации для аккаунта {account_info} \n {response_authorization}',)
+        logger.warning(f'Ошибка авторизации для аккаунта {account_info} \n {response_authorization}', )
 
     return response_authorization.status == 200
 
@@ -153,7 +164,7 @@ async def get_last_mr_sending(session, headers, account_number, test_mode):
 
         for sending in counter_history_js:
             date_time_str = sending.get('date')
-            date_time_obj = datetime.datetime.strptime(date_time_str, '%Y-%m-%dT%H:%M:%S.%f')
+            date_time_obj = datetime.datetime.strptime(date_time_str[0:26], '%Y-%m-%dT%H:%M:%S.%f')
             date_timestamp = date_time_obj.timestamp()
             sending['date_timestamp'] = date_timestamp
             if last_time_of_sending < date_timestamp:
@@ -178,6 +189,48 @@ async def get_ls_info(session, headers, account_number, test_mode):
         print_if_test_mode(json.dumps(ls_info, indent=4, sort_keys=True, ensure_ascii=False), test_mode)
     else:
         logger.warning(f'Ошибка при получении данных по лицевому счету {account_number}')
+        ls_info = None
+
+    return ls_info
+
+
+async def send_mr(session, headers, account_number, value, test_mode):
+    counter_info = await get_counter_info(session, headers, account_number, test_mode)
+
+    if counter_info is None or len(counter_info) == 0:
+        logger.warning(f'Не удалось передать показания по лицевому счету {account_number}! '
+                       f'Отсутствует информация о приборе учета')
+
+    counter_info = counter_info[0]
+
+    counter_info['upd_date'] = None
+    counter_info['cur_month'] = None
+    counter_info['cur_value'] = value
+
+    data_for_send = json.dumps([counter_info])
+    headers_for_send = headers.copy()
+    headers_for_send['Content-Type'] = 'application/json'
+    headers_for_send['Origin'] = url
+
+    result = await session.post(url=url_set_counter_value, data=data_for_send, headers=headers_for_send)
+    result.encoding = 'utf-8'
+    print_if_test_mode(result, test_mode)
+
+    return result.status == 200
+
+
+async def get_counter_info(session, headers, account_number, test_mode):
+    params = {'ls': str(account_number)}
+
+    ls_info = await session.get(url=url_counter_info, headers=headers, params=params)
+    ls_info.encoding = 'utf-8'
+    print_if_test_mode(ls_info, test_mode)
+    if ls_info.status == 200:
+        ls_info_text = await ls_info.text()
+        ls_info = json.loads(ls_info_text)
+        print_if_test_mode(json.dumps(ls_info, indent=4, sort_keys=True, ensure_ascii=False), test_mode)
+    else:
+        logger.warning(f'Ошибка при получении данных прибора по лицевому счету {account_number}')
         ls_info = None
 
     return ls_info

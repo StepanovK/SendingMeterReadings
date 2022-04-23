@@ -32,7 +32,7 @@ async def gasnn_get_account(account_id: int) -> dict:
 
         conn.close()
 
-        cipher = Fernet(config.PASSWORD_ENCRYPT_KEY[-1])
+        cipher = Fernet(config.PASSWORD_ENCRYPT_KEY)
         encrypted_password = bytes(account.get('password', ''), 'utf-8')
         decrypted_password = cipher.decrypt(encrypted_password).decode('utf-8')
         account['password'] = decrypted_password
@@ -112,7 +112,7 @@ async def gasnn_get_meter_readings_for_sending(date_from: float, number: int = 0
         meter_readings = list()
         for row in cursor.fetchall():
             dict_row = dict(row)
-            cipher = Fernet(config.PASSWORD_ENCRYPT_KEY[-1])
+            cipher = Fernet(config.PASSWORD_ENCRYPT_KEY)
             encrypted_password = bytes(dict_row.get('password', ''), 'utf-8')
             decrypted_password = cipher.decrypt(encrypted_password).decode('utf-8')
             dict_row['password'] = decrypted_password
@@ -149,7 +149,7 @@ async def gasnn_get_accounts_for_autosending(date_from: float, number: int = 0) 
         meter_readings = list()
         for row in cursor.fetchall():
             dict_row = dict(row)
-            cipher = Fernet(config.PASSWORD_ENCRYPT_KEY[-1])
+            cipher = Fernet(config.PASSWORD_ENCRYPT_KEY)
             encrypted_password = bytes(dict_row.get('password', ''), 'utf-8')
             decrypted_password = cipher.decrypt(encrypted_password).decode('utf-8')
             dict_row['password'] = decrypted_password
