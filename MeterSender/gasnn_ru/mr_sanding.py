@@ -94,13 +94,12 @@ async def send_reported_mr(number_of_last_days_for_sending, max_number_of_mr_for
             }
             await db.gasnn_update_meter_reading(mr_id, new_info)
 
-        if test_mode:
-            logger.info('Передано показание {} от {} по лицевому счету {}'.format(
-                mr.get('current_value'),
-                datetime.datetime.fromtimestamp(mr.get('date')),
-                mr.get('account_number')
-            )
-            )
+        logger.info('Передано показание {} от {} по лицевому счету {}'.format(
+            mr.get('current_value'),
+            datetime.datetime.fromtimestamp(mr.get('date')),
+            mr.get('account_number')
+        )
+        )
 
 
 @logger.catch()
@@ -147,5 +146,4 @@ async def send_autoincremented_mr(number_of_last_days_for_sending, max_number_of
                                              is_sent=True,
                                              date_of_sending=reading.get('date_of_sending'))
 
-        if test_mode:
             logger.info('Передано автоматическое показание {}'.format(reading))
