@@ -47,7 +47,7 @@ async def send_gasnn_meter_readings(test_mode=False):
                                       max_number_of_mr_for_sending,
                                       test_mode)
 
-    logger.info('Показания gas-nn.ru типа переданы')
+    logger.info('Показания gas-nn.ru переданы')
 
 
 @logger.catch()
