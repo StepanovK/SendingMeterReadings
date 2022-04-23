@@ -43,6 +43,7 @@ async def send_readings(account_info: dict, readings: list, test_mode=False):
 
             account_number = reading.get('ls', '')
 
+            # Запрос к данным ЛС для аутентичности. Сайт это тоже делает зачем-то
             ls_info = await get_ls_info(session, headers, account_number, test_mode)
 
             last_mr_sending = await get_last_mr_sending(session, headers, account_number, test_mode)
