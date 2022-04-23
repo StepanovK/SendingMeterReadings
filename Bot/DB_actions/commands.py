@@ -95,7 +95,7 @@ def reset_database():
             logger.error(f'Не удалось создать базу данных.\n{ex}')
     conn.close()
 
-    with open("DB_actions/database_description.sql", "r") as f:
+    with open("Bot/DB_actions/database_description.sql", "r") as f:
         sql = f.read()
         conn = get_bd_connection()
         with conn.cursor() as cursor:
@@ -110,7 +110,7 @@ def reset_database():
 async def add_test_data():
     conn = get_bd_connection()
     with conn.cursor() as cursor:
-        with open("DB_actions/test_data.sql", "r") as f:
+        with open("Bot/DB_actions/test_data.sql", "r") as f:
             sql = f.read()
             cursor.execute(sql)
             conn.commit()
