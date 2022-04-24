@@ -184,7 +184,7 @@ async def meter_menu_gasnn_ru(user_id, action, last_action, main_menu_message_id
     accounts = await db.gasnn_get_accounts(user_id)
     menu = Markup()
     for account in accounts:
-        text = '{} ({})'.format(account.get('name'), account.get('login'))
+        text = '{} ({})'.format(account.get('name'), account.get('account_number'))
         callback_data = gasnn_account_cbd.new(id=account.get('id'),
                                               action=action,
                                               last_action=last_action,
