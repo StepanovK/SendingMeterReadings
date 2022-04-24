@@ -26,7 +26,9 @@ class RegStates(StatesGroup):
 @dp.callback_query_handler(operator_cbd.filter(action='create', operator='gas-nn_ru'),
                            state=MainStates.MainMenuNavigation)
 async def start_create(callback: CallbackQuery, callback_data: dict, state: FSMContext):
-    message = await bot.send_message(text='Введите описание (Например: "Счетчик на кухне"):',
+    mes_text = 'Для автоматической отправки вам потребуется зарегистрироваться на сайте https://www.gas-nn.ru/' \
+               ' и ввести логин и пароль от личного кабинета.\nВведите описание (Например: "Счетчик на кухне"):'
+    message = await bot.send_message(text=mes_text,
                                      chat_id=callback.message.chat.id,
                                      disable_notification=True)
     data = {'name': '',
