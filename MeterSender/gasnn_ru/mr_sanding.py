@@ -47,8 +47,6 @@ async def send_gasnn_meter_readings(test_mode=False):
                                       max_number_of_mr_for_sending,
                                       test_mode)
 
-    logger.info('Показания gas-nn.ru переданы')
-
 
 @logger.catch()
 async def send_reported_mr(number_of_last_days_for_sending, max_number_of_mr_for_sending, test_mode=False):
@@ -58,6 +56,8 @@ async def send_reported_mr(number_of_last_days_for_sending, max_number_of_mr_for
     meter_readings_for_sending = await db.gasnn_get_meter_readings_for_sending(
         float(date_from.timestamp()),
         max_number_of_mr_for_sending)
+
+    total_sent = 0
 
     for mr in meter_readings_for_sending:
 
@@ -94,12 +94,18 @@ async def send_reported_mr(number_of_last_days_for_sending, max_number_of_mr_for
             }
             await db.gasnn_update_meter_reading(mr_id, new_info)
 
+        total_sent += len(readings)
+
         logger.info('Передано показание {} от {} по лицевому счету {}'.format(
             mr.get('current_value'),
             datetime.datetime.fromtimestamp(mr.get('date')),
             mr.get('account_number')
         )
         )
+
+    if len(meter_readings_for_sending) > 0:
+        logger.info(f'Отправлено {total_sent} из {len(meter_readings_for_sending)} '
+                    f'показаний переданных боту gas-nn.ru')
 
 
 @logger.catch()
@@ -110,6 +116,8 @@ async def send_autoincremented_mr(number_of_last_days_for_sending, max_number_of
     meter_readings_for_sending = await db.gasnn_get_accounts_for_autosending(
         date_from.timestamp(),
         max_number_of_mr_for_sending)
+
+    total_sent = 0
 
     for mr in meter_readings_for_sending:
 
@@ -147,3 +155,9 @@ async def send_autoincremented_mr(number_of_last_days_for_sending, max_number_of
                                              date_of_sending=reading.get('date_of_sending'))
 
             logger.info('Передано автоматическое показание {}'.format(reading))
+
+        total_sent += len(readings)
+
+    if len(meter_readings_for_sending) > 0:
+        logger.info(f'Отправлено {total_sent} из {len(meter_readings_for_sending)} '
+                    f'автоматических показаний gas-nn.ru')
