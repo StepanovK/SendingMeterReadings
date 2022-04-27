@@ -10,7 +10,7 @@ import handlers.gasnn_edition
 import handlers.gasnn_registration
 import handlers.gasnn_meters_readings_sending
 
-parser = argparse.ArgumentParser(description='A tutorial of argparse!')
+parser = argparse.ArgumentParser(description='SMR')
 parser.add_argument("--resetdb", default=0, help="This is the 'resetdb' variable")
 
 
