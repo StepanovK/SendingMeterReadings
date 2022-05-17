@@ -2,7 +2,7 @@
 chromedriver.exe
 *.db
 database/test_data.sql
-DB_actions/test_data.sql
+Bot/DB_actions/test_data.sql
 test_data.sql
 
 # Byte-compiled / optimized / DLL files
