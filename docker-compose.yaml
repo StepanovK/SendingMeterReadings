@@ -1,17 +1,27 @@
 version: "3"
 
 volumes:
-  BD_SQLite_volume:
+  pgdata_volume:
   Logs_volume:
 
 services:
+  db:
+    image: postgres
+    environment:
+      - POSTGRES_USER=smr
+      - POSTGRES_PASSWORD=admin
+      - POSTGRES_DB=smr
+    ports:
+      - ${POSTGRES_PORT:-5432}:5432
+    volumes:
+      - pgdata_volume:/var/lib/postgresql/data
+
   smr-bot:
     build: Bot/
     restart: always
     environment:
       - TZ=Europe/Moscow
     volumes:
-      - BD_SQLite_volume:/Database
       - Logs_volume:/Logs
 
   smr-meter_sender:
@@ -20,5 +30,4 @@ services:
     environment:
       - TZ=Europe/Moscow
     volumes:
-      - BD_SQLite_volume:/Database
       - Logs_volume:/Logs

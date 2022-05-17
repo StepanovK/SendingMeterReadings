@@ -129,7 +129,7 @@ async def save_increment_input(message: Message, state: FSMContext):
         await db.gasnn_add_meter_reading(account=account_id,
                                          date=datetime.now().timestamp(),
                                          current_value=new_value)
-        message_text = f'Значение {new_value} принято ботом. Оно будет передано в положенное время передачи'
+        message_text = f'Значение {new_value} принято ботом. Оно будет передано в период с 23 по 25 числа'
         answer = await message.answer(text=message_text)
         await delete_message_with_timeout(answer, 7)
 

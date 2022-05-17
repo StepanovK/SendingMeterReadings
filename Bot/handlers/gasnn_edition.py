@@ -76,7 +76,7 @@ async def start_edit(callback_q: CallbackQuery, callback_data: dict, state: FSMC
 async def change_auto_sending(callback_q: CallbackQuery, callback_data: dict, state: FSMContext):
     await db.gasnn_set_attribute_account(account_id=callback_data.get('id'),
                                          attribute='auto_sending',
-                                         value=bool(int(callback_data.get('auto_sending'))))
+                                         value=int(callback_data.get('auto_sending')))
     answer = await bot.send_message(text='Готово!', chat_id=callback_q.message.chat.id)
     await bot.answer_callback_query(callback_q.id)
     await MainStates.MainMenuNavigation.set()
@@ -88,7 +88,7 @@ async def change_auto_sending(callback_q: CallbackQuery, callback_data: dict, st
 async def change_increment(callback_q: CallbackQuery, callback_data: dict, state: FSMContext):
     await db.gasnn_set_attribute_account(account_id=callback_data.get('id'),
                                          attribute='auto_sending',
-                                         value=bool(callback_data.get('auto_sending')))
+                                         value=int(callback_data.get('auto_sending', 0)))
 
     default_increment = callback_data.get('default_increment', 0)
     message = await bot.send_message(

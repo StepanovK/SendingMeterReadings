@@ -1,12 +1,17 @@
 from aiogram import executor
 from loader import dp, bot, logger
 from config import ADMINS
-import asyncio
+import argparse
+import DB_actions.commands as db
+import aiogram
 import handlers.registration
 import handlers.navigation
 import handlers.gasnn_edition
 import handlers.gasnn_registration
 import handlers.gasnn_meters_readings_sending
+
+parser = argparse.ArgumentParser(description='SMR')
+parser.add_argument("--resetdb", default=0, help="This is the 'resetdb' variable")
 
 
 def start_polling():
@@ -31,4 +36,7 @@ async def send_to_admins(text_message: str):
 
 
 if __name__ == '__main__':
+    args = parser.parse_args()
+    if str(args.resetdb) == '1':
+        db.reset_database()
     start_polling()

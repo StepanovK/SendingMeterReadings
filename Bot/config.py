@@ -9,6 +9,10 @@ env.read_env()
 
 BOT_TOKEN = env.str("BOT_TOKEN")
 ADMINS = env.list("ADMIN")
-PASSWORD_ENCRYPT_KEY = env.list("PASSWORD_ENCRYPT_KEY")
+PASSWORD_ENCRYPT_KEY = env.str("PASSWORD_ENCRYPT_KEY")
 
-DB_name = 'Database/smr.db'
+db_host = env.str("db_host")
+db_port = env.int("db_port")
+db_user = env.str("db_user")
+db_password = env.str("db_password")
+db_name = env.str("db_name")

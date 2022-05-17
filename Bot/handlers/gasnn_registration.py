@@ -26,7 +26,9 @@ class RegStates(StatesGroup):
 @dp.callback_query_handler(operator_cbd.filter(action='create', operator='gas-nn_ru'),
                            state=MainStates.MainMenuNavigation)
 async def start_create(callback: CallbackQuery, callback_data: dict, state: FSMContext):
-    message = await bot.send_message(text='Введите описание (Например: "Счетчик на кухне"):',
+    mes_text = 'Для автоматической отправки вам потребуется зарегистрироваться на сайте https://www.gas-nn.ru/' \
+               ' и ввести логин и пароль от личного кабинета.\nВведите описание (Например: "Счетчик на кухне"):'
+    message = await bot.send_message(text=mes_text,
                                      chat_id=callback.message.chat.id,
                                      disable_notification=True)
     data = {'name': '',
@@ -54,7 +56,7 @@ async def input_name(message: Message, state: FSMContext):
     data['name'] = message.text
     data['messages_id'].append(message.message_id)
     await clear_message(state.chat, data['messages_id'])
-    new_message = await message.answer(text='Введите адрес электронной почты для входа:')
+    new_message = await message.answer(text='Введите адрес электронной почты для входа на сайт https://www.gas-nn.ru/:')
     data['messages_id'].append(new_message.message_id)
     await state.update_data(data)
     await RegStates.Gas_InputLogin.set()
@@ -112,6 +114,9 @@ async def input_family_name(message: Message, state: FSMContext):
     yes_no_kb = await yes_no_keyboard()
     data['messages_id'].append(message.message_id)
     await clear_message(state.chat, data['messages_id'])
+    m_text = 'Бот может передавать показания (если вы забыли это сделать), просто прибавляя заданное вами ' \
+             'значение к значению прошлого месяца. Эту опцию можно будет включить/отключить позже в настройках.\n' \
+             'Включить автопередачу показаний? '
     new_message = await message.answer(text='Включить автопередачу показаний?', reply_markup=yes_no_kb)
     data['messages_id'].append(new_message.message_id)
     await state.update_data(data)
