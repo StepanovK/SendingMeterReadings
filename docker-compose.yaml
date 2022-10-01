@@ -1,33 +1,55 @@
-version: "3"
+version: "3.9"
 
 volumes:
   pgdata_volume:
-  Logs_volume:
+  logs_volume:
+
+networks:
+  smr_bot:
+    driver: bridge
 
 services:
-  db:
-    image: postgres
+
+  postgres_ru:
+    build:
+      context: .
+      dockerfile: Database/Dockerfile
     environment:
-      - POSTGRES_USER=smr
-      - POSTGRES_PASSWORD=admin
-      - POSTGRES_DB=smr
+      PGDATA: "/var/lib/postgresql/data/pgdata"
     ports:
       - ${POSTGRES_PORT:-5432}:5432
+    restart: always
     volumes:
       - pgdata_volume:/var/lib/postgresql/data
+    networks:
+      - smr_bot
+    env_file:
+      - .env
 
-  smr-bot:
-    build: Bot/
+  bot:
+    build:
+      context: .
+      dockerfile: Bot/Dockerfile
     restart: always
-    environment:
-      - TZ=Europe/Moscow
     volumes:
-      - Logs_volume:/Logs
+      - logs_volume:/Logs
+    env_file:
+      - .env
+    networks:
+      - smr_bot
+    depends_on:
+      - postgres_ru
 
-  smr-meter_sender:
-    build: MeterSender/
+  meter_sender:
+    build:
+      context: .
+      dockerfile: MeterSender/Dockerfile
     restart: always
-    environment:
-      - TZ=Europe/Moscow
     volumes:
-      - Logs_volume:/Logs
+      - logs_volume:/Logs
+    env_file:
+      - .env
+    networks:
+      - smr_bot
+    depends_on:
+      - postgres_ru
