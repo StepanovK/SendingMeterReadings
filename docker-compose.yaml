@@ -2,7 +2,8 @@ version: "3.9"
 
 volumes:
   pgdata_volume:
-  logs_volume:
+  logs_volume_bot:
+  logs_volume_smr:
 
 networks:
   smr_bot:
@@ -32,7 +33,7 @@ services:
       dockerfile: Bot/Dockerfile
     restart: always
     volumes:
-      - logs_volume:/Logs
+      - logs_volume_bot:/Logs
     env_file:
       - .env
     networks:
@@ -46,7 +47,7 @@ services:
       dockerfile: MeterSender/Dockerfile
     restart: always
     volumes:
-      - logs_volume:/Logs
+      - logs_volume_smr:/Logs
     env_file:
       - .env
     networks:
